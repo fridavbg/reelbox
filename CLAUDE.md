@@ -43,6 +43,6 @@ Web app for people who save lots of Instagram reels for inspiration: upload Inst
 
 ## Workflow
 
-- One issue at a time, on a branch named after it (e.g. `parse-and-validate-the-instagram-export`).
+- One issue at a time, on a branch named `<type>/<issue-number>-<short-name>` (e.g. `feat/7-parse-export`).
 - Small commits referencing the issue: `feat: parse saved posts (#7)`.
 - Lint and tests must pass before merging.
