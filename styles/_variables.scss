@@ -1,0 +1,93 @@
+// Design tokens from the Reelbox design system. This file is the source of
+// truth in code; design changes need an issue.
+
+// Color
+$color-ink: #313e50;
+$color-ink-soft: #455561;
+$color-ink-muted: #5c6672;
+$color-line-strong: #6c6f7f;
+$color-surface-dark: #3a435e;
+$color-surface: #ffffff;
+$color-surface-alt: #f2f4f7;
+$color-placeholder: #e4e8ee;
+$color-line: #d5dae1;
+$color-badge: #e8ebf0;
+$color-accent: #f2a541; // Always with ink text.
+$color-accent-hover: #f7b95e;
+$color-accent-strong: #8a4b08; // Links, secondary buttons, focus rings.
+$color-accent-soft: #fdf1dd;
+$color-success: #1f7a3f;
+$color-danger: #b42318;
+$color-danger-soft: #fdecea;
+
+// Typography
+$font-sans: var(--font-plex-sans), system-ui, sans-serif;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+
+// Use with the text-style mixin in _typography.scss.
+$text-styles: (
+  display: (
+    size: 28px,
+    line-height: 34px,
+    weight: $font-weight-semibold,
+  ),
+  title: (
+    size: 22px,
+    line-height: 28px,
+    weight: $font-weight-semibold,
+  ),
+  heading: (
+    size: 18px,
+    line-height: 24px,
+    weight: $font-weight-semibold,
+  ),
+  body: (
+    size: 16px,
+    line-height: 24px,
+    weight: $font-weight-regular,
+  ),
+  label: (
+    size: 14px,
+    line-height: 20px,
+    weight: $font-weight-medium,
+  ),
+  small: (
+    size: 14px,
+    line-height: 20px,
+    weight: $font-weight-regular,
+  ),
+  caption: (
+    size: 13px,
+    line-height: 18px,
+    weight: $font-weight-regular,
+  ),
+);
+
+// Spacing: use only these steps.
+$space-1: 4px;
+$space-2: 8px;
+$space-4: 16px;
+$space-6: 24px;
+$space-8: 32px;
+
+// Radius
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
+$radius-pill: 999px;
+
+// Size
+$touch-target: 44px;
+$control-height: 48px;
+
+// Breakpoints: use through the respond-to mixin in _breakpoints.scss.
+$bp-tablet: 768px;
+$bp-desktop: 1024px;
+
+// Layout (from the wireframes)
+$header-height: 56px;
+$header-height-desktop: 64px;
+$content-max-width: 1280px;

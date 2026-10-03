@@ -1,0 +1,19 @@
+@use "sass:map";
+@use "variables" as *;
+
+$breakpoints: (
+  tablet: $bp-tablet,
+  desktop: $bp-desktop,
+);
+
+// Mobile first: base styles target small screens; this adds styles from a
+// breakpoint up. Usage: @include respond-to(tablet) { ... }
+@mixin respond-to($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error "Unknown breakpoint `#{$name}`. Use one of: #{map.keys($breakpoints)}.";
+  }
+
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}

@@ -1,0 +1,15 @@
+@use "sass:map";
+@use "variables" as *;
+
+// Applies one of the design system's text styles.
+// Usage: @include text-style(title);
+@mixin text-style($name) {
+  @if not map.has-key($text-styles, $name) {
+    @error "Unknown text style `#{$name}`. Use one of: #{map.keys($text-styles)}.";
+  }
+
+  $style: map.get($text-styles, $name);
+  font-size: map.get($style, size);
+  line-height: map.get($style, line-height);
+  font-weight: map.get($style, weight);
+}
