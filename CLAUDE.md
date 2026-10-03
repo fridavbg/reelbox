@@ -11,7 +11,7 @@ Web app for people who save lots of Instagram reels for inspiration: upload Inst
 
 - Next.js (App Router) + TypeScript (strict), one fullstack app
 - Postgres on Neon; Zod for validation at every boundary
-- Sass: SCSS modules (`*.module.scss`), mobile-first, shared `_tokens.scss` + `respond-to` breakpoint mixin
+- Sass: SCSS modules (`*.module.scss`), mobile-first, shared `styles/_variables.scss` (design tokens) + `styles/_breakpoints.scss` (`respond-to` mixin)
 - Vitest (unit) + Playwright (end-to-end); GitHub Actions CI
 - Hosted on Vercel, kept portable (no vendor-only services); free-tier infrastructure only
 - To decide in their issues: auth library (email codes), email service, ORM

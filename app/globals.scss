@@ -1,0 +1,48 @@
+@use "../styles/variables" as *;
+@use "../styles/typography" as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: $font-sans;
+  @include text-style(body);
+  color: $color-ink;
+  background: $color-surface;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: $color-accent-strong;
+
+  &:hover {
+    color: $color-ink;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid $color-accent-strong;
+  outline-offset: 2px;
+}
