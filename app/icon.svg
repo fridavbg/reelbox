@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Reelbox">
+<title>Reelbox</title>
+<rect width="64" height="64" rx="14" fill="#3A435E"/>
+<rect x="12" y="11" width="30" height="30" rx="6" fill="#8A93A3"/>
+<rect x="22" y="21" width="31" height="31" rx="6" fill="#F2A541"/>
+<path d="M33 30.5v12l10-6z" fill="#313E50"/>
+</svg>

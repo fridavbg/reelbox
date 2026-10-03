@@ -1,0 +1,52 @@
+@use "../../styles/variables" as *;
+@use "../../styles/breakpoints" as *;
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  min-height: $header-height;
+  padding: 0 $space-4;
+  border-bottom: 1px solid $color-line;
+
+  @include respond-to(desktop) {
+    min-height: $header-height-desktop;
+    padding: 0 $space-8;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  flex-shrink: 0;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: $content-max-width;
+  margin: 0 auto;
+  padding: $space-6 $space-4;
+
+  @include respond-to(tablet) {
+    padding: $space-6;
+  }
+
+  @include respond-to(desktop) {
+    padding: $space-6 $space-8;
+  }
+}
