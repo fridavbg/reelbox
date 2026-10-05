@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reelbox
 
-## Getting Started
+A web app for people who save lots of reels for inspiration. Upload your official Instagram data export, then tag, filter and find your saves.
 
-First, run the development server:
+Work in progress.
+
+## Stack
+
+Next.js (App Router) and TypeScript, Postgres on Neon with Prisma, Zod, Sass modules, Vitest and Playwright. Hosted on Vercel.
+
+## Getting started
+
+Requires Node 24.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install                # also generates the Prisma client
+cp .env.example .env       # then fill in the database URLs
+npm run db:migrate         # apply migrations to your development database
+npm run dev                # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Use a separate development database (for example a Neon branch), not production.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script               | What it does                                            |
+| -------------------- | ------------------------------------------------------- |
+| `npm run dev`        | Start the development server                            |
+| `npm run build`      | Production build                                        |
+| `npm run lint`       | ESLint                                                  |
+| `npm run format`     | Format with Prettier                                    |
+| `npm run typecheck`  | Type-check the project                                  |
+| `npm test`           | Run the unit tests (Vitest)                             |
+| `npm run db:migrate` | Create and apply migrations on the development database |
+| `npm run db:deploy`  | Apply pending migrations without resetting anything     |
+| `npm run db:studio`  | Browse the database in Prisma Studio                    |
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+Vercel deploys every branch as a preview and `main` to production. Production builds apply pending database migrations before building (`npm run build:vercel`, set in `vercel.json`), so the database is updated before the new code goes live. Preview builds skip migrations.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Vercel needs `DATABASE_URL` (pooled) for the app and, for production only, `DATABASE_URL_UNPOOLED` (direct) for migrations.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database
 
-## Deploy on Vercel
+Every table belongs to a user, and deleting a user deletes all their data.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```mermaid
+erDiagram
+  users ||--o{ posts : saves
+  users ||--o{ tags : creates
+  users ||--o{ collections : has
+  users ||--o{ imports : runs
+  posts ||--o{ post_tags : ""
+  tags ||--o{ post_tags : ""
+  posts ||--o{ post_collections : ""
+  collections ||--o{ post_collections : ""
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Table              | Purpose                                                                      | Key constraint                                                       |
+| ------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `users`            | Account                                                                      | Unique `email`                                                       |
+| `posts`            | A saved post or reel: shortcode, URL, caption, creator, hashtags, saved date | Unique `(user_id, shortcode)`                                        |
+| `collections`      | Collections from the export                                                  | Unique `(user_id, external_id)`                                      |
+| `post_collections` | Which posts are in which collections                                         | Primary key `(post_id, collection_id)`                               |
+| `tags`             | The user's own tags                                                          | Unique `(user_id, name_key)`, so "Recipes" and "recipes" are one tag |
+| `post_tags`        | Which tags are on which posts                                                | Primary key `(post_id, tag_id)`                                      |
+| `imports`          | One row per upload: date range covered and new / duplicate / invalid counts  | —                                                                    |
+
+The schema lives in `prisma/schema.prisma`; migrations are in `prisma/migrations/`.
+
+## License
+
+MIT
