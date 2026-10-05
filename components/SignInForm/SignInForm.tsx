@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Alert } from "@/components/Alert/Alert";
 import { Button } from "@/components/Button/Button";
+import { DemoButton } from "@/components/DemoButton/DemoButton";
 import { TextInput } from "@/components/TextInput/TextInput";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -72,7 +73,6 @@ export function SignInForm() {
     });
     if (!signInError) {
       router.push("/saves");
-      router.refresh();
       return;
     }
     const left =
@@ -129,6 +129,7 @@ export function SignInForm() {
             Send sign-in code
           </Button>
         </form>
+        <DemoButton />
       </div>
     );
   }
