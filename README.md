@@ -39,7 +39,17 @@ Use a separate development database (for example a Neon branch), not production.
 
 Vercel deploys every branch as a preview and `main` to production. Production builds apply pending database migrations before building (`npm run build:vercel`, set in `vercel.json`), so the database is updated before the new code goes live. Preview builds skip migrations.
 
-Vercel needs `DATABASE_URL` (pooled) for the app and, for production only, `DATABASE_URL_UNPOOLED` (direct) for migrations.
+Environment variables in Vercel (see `.env.example` for what each one is):
+
+| Variable                      | Production                                   | Preview                              |
+| ----------------------------- | -------------------------------------------- | ------------------------------------ |
+| `DATABASE_URL`                | Production database, pooled                  | Development database, pooled         |
+| `DATABASE_URL_UNPOOLED`       | Production database, direct (for migrations) | Not needed                           |
+| `BETTER_AUTH_SECRET`          | Its own secret                               | A different secret                   |
+| `BETTER_AUTH_URL`             | The production URL                           | The production URL (only a fallback) |
+| `BREVO_API_KEY`, `EMAIL_FROM` | Brevo key and verified sender                | Same                                 |
+
+Preview URLs change with every deployment. Sign-in follows the URL the request came in on, as long as it matches the allowed hosts in `lib/auth.ts`.
 
 ## Database
 
