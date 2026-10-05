@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    await db().query("select 1");
+    await db().$queryRaw`select 1`;
     return Response.json({ status: "ok", database: "ok" });
   } catch (error) {
     console.error("Health check failed", error);
