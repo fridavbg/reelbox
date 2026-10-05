@@ -23,17 +23,17 @@ Use a separate development database (for example a Neon branch), not production.
 
 ## Scripts
 
-| Script               | What it does                                            |
-| -------------------- | ------------------------------------------------------- |
-| `npm run dev`        | Start the development server                            |
-| `npm run build`      | Production build                                        |
-| `npm run lint`       | ESLint                                                  |
-| `npm run format`     | Format with Prettier                                    |
-| `npm run typecheck`  | Type-check the project                                  |
-| `npm test`           | Run the unit tests (Vitest)                             |
-| `npm run db:migrate` | Create and apply migrations on the development database |
-| `npm run db:deploy`  | Apply pending migrations without resetting anything     |
-| `npm run db:studio`  | Browse the database in Prisma Studio                    |
+| Script                                | What it does                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `npm run dev`                         | Start the development server                                                         |
+| `npm run build`                       | Production build                                                                     |
+| `npm run lint`                        | ESLint                                                                               |
+| `npm run format`                      | Format with Prettier                                                                 |
+| `npm run typecheck`                   | Type-check the project                                                               |
+| `npm test`                            | Run the unit tests (Vitest)                                                          |
+| `npm run db:migrate -- --name <name>` | Create and apply a migration on the development database, then regenerate the client |
+| `npm run db:deploy`                   | Apply pending migrations without resetting anything                                  |
+| `npm run db:studio`                   | Browse the database in Prisma Studio                                                 |
 
 ## Deployment
 
@@ -67,15 +67,15 @@ erDiagram
   collections ||--o{ post_collections : ""
 ```
 
-| Table              | Purpose                                                                      | Key constraint                                                       |
-| ------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `users`            | Account                                                                      | Unique `email`                                                       |
-| `posts`            | A saved post or reel: shortcode, URL, caption, creator, hashtags, saved date | Unique `(user_id, shortcode)`                                        |
-| `collections`      | Collections from the export                                                  | Unique `(user_id, external_id)`                                      |
-| `post_collections` | Which posts are in which collections                                         | Primary key `(post_id, collection_id)`                               |
-| `tags`             | The user's own tags                                                          | Unique `(user_id, name_key)`, so "Recipes" and "recipes" are one tag |
-| `post_tags`        | Which tags are on which posts                                                | Primary key `(post_id, tag_id)`                                      |
-| `imports`          | One row per upload: date range covered and new / duplicate / invalid counts  | —                                                                    |
+| Table              | Purpose                                                                             | Key constraint                                                       |
+| ------------------ | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `users`            | Account; demo visitors are temporary users (`is_anonymous`), deleted after 24 hours | Unique `email`                                                       |
+| `posts`            | A saved post or reel: shortcode, URL, caption, creator, hashtags, saved date        | Unique `(user_id, shortcode)`                                        |
+| `collections`      | Collections from the export                                                         | Unique `(user_id, external_id)`                                      |
+| `post_collections` | Which posts are in which collections                                                | Primary key `(post_id, collection_id)`                               |
+| `tags`             | The user's own tags                                                                 | Unique `(user_id, name_key)`, so "Recipes" and "recipes" are one tag |
+| `post_tags`        | Which tags are on which posts                                                       | Primary key `(post_id, tag_id)`                                      |
+| `imports`          | One row per upload: date range covered and new / duplicate / invalid counts         | —                                                                    |
 
 The schema lives in `prisma/schema.prisma`; migrations are in `prisma/migrations/`.
 
