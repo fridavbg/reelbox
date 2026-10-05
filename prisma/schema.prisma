@@ -18,6 +18,8 @@ model User {
   name          String   @default("")
   emailVerified Boolean  @default(false) @map("email_verified")
   image         String?
+  // Demo visitors: temporary users with sample data, deleted after 24 hours.
+  isAnonymous   Boolean  @default(false) @map("is_anonymous")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -28,6 +30,8 @@ model User {
   tags        Tag[]
   imports     Import[]
 
+  // Finds expired demo users for cleanup.
+  @@index([isAnonymous, createdAt])
   @@map("users")
 }
 

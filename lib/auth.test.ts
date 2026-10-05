@@ -1,12 +1,13 @@
 import { betterAuth } from "better-auth";
 import { memoryAdapter, type MemoryDB } from "better-auth/adapters/memory";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { signInCodePlugin } from "./auth";
+import { demoPlugin, onDemoUserCreated, signInCodePlugin } from "./auth";
 import { CODE_VALID_MINUTES } from "./sign-in-settings";
 
 // Runs the real sign-in code settings against an in-memory database.
 function setup() {
   const sent: { email: string; code: string }[] = [];
+  const seeded: string[] = [];
   const memory: MemoryDB = {
     user: [],
     session: [],
@@ -17,7 +18,13 @@ function setup() {
     secret: "test-secret-that-is-at-least-32-chars",
     baseURL: "http://localhost:3000",
     database: memoryAdapter(memory),
-    plugins: [signInCodePlugin((email, code) => sent.push({ email, code }))],
+    databaseHooks: onDemoUserCreated(async (userId) => {
+      seeded.push(userId);
+    }),
+    plugins: [
+      signInCodePlugin((email, code) => sent.push({ email, code })),
+      demoPlugin(),
+    ],
   });
 
   async function requestCode(email: string) {
@@ -31,7 +38,7 @@ function setup() {
     return auth.api.signInEmailOTP({ body: { email, otp } });
   }
 
-  return { auth, memory, sent, requestCode, signIn };
+  return { auth, memory, sent, seeded, requestCode, signIn };
 }
 
 const email = "user@example.com";
@@ -116,5 +123,41 @@ describe("sign-in codes", () => {
     const existing = await requestCode(email);
     const unknown = await requestCode("someone-new@example.com");
     expect(existing.response).toEqual(unknown.response);
+  });
+});
+
+describe("demo sign-in", () => {
+  it("creates a temporary demo user and seeds it once", async () => {
+    const { auth, memory, seeded } = setup();
+    const result = await auth.api.signInAnonymous();
+    expect(result?.user.isAnonymous).toBe(true);
+    expect(memory.user).toHaveLength(1);
+    expect(seeded).toEqual([result?.user.id]);
+  });
+
+  it("gives every visitor their own demo user", async () => {
+    const { auth, seeded } = setup();
+    await auth.api.signInAnonymous();
+    await auth.api.signInAnonymous();
+    expect(new Set(seeded).size).toBe(2);
+  });
+
+  it("doesn't seed real users", async () => {
+    const { requestCode, signIn, seeded } = setup();
+    const { code } = await requestCode(email);
+    await signIn(email, code);
+    expect(seeded).toEqual([]);
+  });
+
+  it("deletes the demo user when the visitor signs in with email", async () => {
+    const { auth, memory, requestCode } = setup();
+    const demo = await auth.api.signInAnonymous({ asResponse: true });
+    const cookie = demo.headers.get("set-cookie")!.split(";")[0];
+    const { code } = await requestCode(email);
+    await auth.api.signInEmailOTP({
+      body: { email, otp: code },
+      headers: new Headers({ cookie }),
+    });
+    expect(memory.user.map((user) => user.email)).toEqual([email]);
   });
 });

@@ -1,9 +1,10 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
-import { emailOTP } from "better-auth/plugins";
+import { anonymous, emailOTP } from "better-auth/plugins";
 import { after } from "next/server";
 import { db } from "./db";
+import { deleteExpiredDemoUsers, seedDemoUser } from "./demo/demo-users";
 import { sendSignInCode } from "./email";
 import { serverEnv } from "./env";
 import { ALLOWED_ATTEMPTS, CODE_VALID_MINUTES } from "./sign-in-settings";
@@ -21,6 +22,30 @@ export function signInCodePlugin(send: (email: string, code: string) => void) {
       if (type === "sign-in") send(email, otp);
     },
   });
+}
+
+// "Try the demo": a one-click sign-in that creates a temporary user. Signing
+// in with an email code afterwards deletes the demo user and its data.
+export function demoPlugin() {
+  return anonymous({
+    generateName: () => "Demo visitor",
+    emailDomainName: "demo.reelbox.invalid",
+  });
+}
+
+// Runs once for every new demo user, before the sign-in response is sent.
+export function onDemoUserCreated(
+  handle: (userId: string) => Promise<void>,
+): BetterAuthOptions["databaseHooks"] {
+  return {
+    user: {
+      create: {
+        async after(user) {
+          if (user.isAnonymous) await handle(user.id);
+        },
+      },
+    },
+  };
 }
 
 function createAuth() {
@@ -43,6 +68,15 @@ function createAuth() {
     advanced: { database: { generateId: "uuid" } },
     // Serverless instances don't share memory, so counters live in Postgres.
     rateLimit: { storage: "database" },
+    databaseHooks: onDemoUserCreated(async (userId) => {
+      await seedDemoUser(userId);
+      // Old demo users are cleaned up whenever a new one starts.
+      after(() =>
+        deleteExpiredDemoUsers().catch((error) =>
+          console.error("Failed to delete expired demo users", error),
+        ),
+      );
+    }),
     plugins: [
       signInCodePlugin((email, code) =>
         // Send after the response, so the response time is the same whether
@@ -53,6 +87,7 @@ function createAuth() {
           ),
         ),
       ),
+      demoPlugin(),
       // Lets server actions set the session cookie. Must be the last plugin.
       nextCookies(),
     ],
