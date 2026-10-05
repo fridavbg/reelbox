@@ -1,16 +1,26 @@
-import { Layout } from "@/components/Layout/Layout";
+import Image from "next/image";
+import { redirect } from "next/navigation";
+import { SignInForm } from "@/components/SignInForm/SignInForm";
+import { getSession } from "@/lib/session";
 import styles from "./page.module.scss";
 
-export default function Home() {
+export default async function Home() {
+  if (await getSession()) redirect("/saves");
+
   return (
-    <Layout>
-      <div className={styles.intro}>
-        <h1 className={styles.title}>Work in progress</h1>
-        <p className={styles.text}>
-          Reelbox will help you tag, filter and find the reels you save. Coming
-          soon.
-        </p>
-      </div>
-    </Layout>
+    <main className={styles.page}>
+      <Image
+        src="/reelbox-logo.svg"
+        alt="Reelbox"
+        width={143}
+        height={32}
+        priority
+      />
+      <SignInForm />
+      <p className={styles.note}>
+        Works with Instagram&apos;s official data export. We never ask for your
+        Instagram password.
+      </p>
+    </main>
   );
 }

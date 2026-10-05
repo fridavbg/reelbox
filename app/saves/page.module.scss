@@ -1,0 +1,21 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/breakpoints" as *;
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.title {
+  @include text-style(title);
+
+  @include respond-to(desktop) {
+    @include text-style(display);
+  }
+}
+
+.text {
+  color: $color-ink-muted;
+}
