@@ -1,0 +1,62 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: $touch-target;
+  border-radius: $radius-md;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:disabled {
+    background: $color-surface-alt;
+    border-color: $color-surface-alt;
+    color: $color-ink-muted;
+    cursor: not-allowed;
+  }
+}
+
+.primary,
+.secondary {
+  min-height: $control-height;
+  padding: 0 $space-6;
+  @include text-style(body);
+  font-weight: $font-weight-medium;
+}
+
+// Amber always has ink text, never white.
+.primary {
+  border: 1px solid $color-accent;
+  background: $color-accent;
+  color: $color-ink;
+
+  &:hover:not(:disabled) {
+    border-color: $color-accent-hover;
+    background: $color-accent-hover;
+  }
+}
+
+.secondary {
+  border: 1px solid $color-accent-strong;
+  background: $color-surface;
+  color: $color-accent-strong;
+
+  &:hover:not(:disabled) {
+    background: $color-accent-soft;
+  }
+}
+
+.text {
+  padding: 0;
+  border: none;
+  background: none;
+  @include text-style(small);
+  color: $color-accent-strong;
+  text-decoration: underline;
+
+  &:hover:not(:disabled) {
+    color: $color-ink;
+  }
+}

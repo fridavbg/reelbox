@@ -1,0 +1,55 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.label {
+  @include text-style(label);
+}
+
+.input {
+  width: 100%;
+  min-height: $control-height;
+  padding: 0 $space-4;
+  border: 1px solid $color-line-strong;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-ink;
+  font-family: inherit;
+  // 16px, so iPhones don't zoom in.
+  @include text-style(body);
+
+  &::placeholder {
+    color: $color-ink-muted;
+  }
+
+  &:focus-visible {
+    border-color: $color-accent-strong;
+  }
+}
+
+.invalid {
+  border: 2px solid $color-danger;
+}
+
+.helper {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+.error {
+  display: flex;
+  gap: $space-2;
+  align-items: flex-start;
+  @include text-style(small);
+  color: $color-danger;
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
