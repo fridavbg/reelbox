@@ -1,0 +1,58 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.submit {
+  width: 100%;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: $space-8;
+  align-items: stretch;
+
+  // The back link sits on its own line, left-aligned.
+  > button:first-child {
+    align-self: flex-start;
+  }
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.display {
+  @include text-style(display);
+}
+
+.title {
+  @include text-style(title);
+}
+
+.text {
+  color: $color-ink-muted;
+}
+
+// Larger, spaced digits so the code is easy to check against the email.
+.codeInput {
+  min-height: 56px;
+  font-size: 24px;
+  letter-spacing: 8px;
+}
+
+.resend {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  align-items: flex-start;
+  @include text-style(small);
+  color: $color-ink-muted;
+}
