@@ -34,7 +34,7 @@ function createAuth() {
     baseURL: {
       allowedHosts: [
         "localhost:3000",
-        "reelbox-tau.vercel.app",
+        "reelboxapp.vercel.app",
         "reelbox-*-fridavbgs-projects.vercel.app",
       ],
       fallback: env.BETTER_AUTH_URL,
