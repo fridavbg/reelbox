@@ -21,6 +21,8 @@ export const RATE_LIMITED =
   "Too many tries. Wait a few minutes, then try again.";
 export const SEND_FAILED =
   "We couldn't send the code. Check your connection and try again.";
+export const DEMO_FAILED =
+  "We couldn't start the demo. Check your connection and try again.";
 
 type SignInFailure = { code?: string; status?: number };
 
