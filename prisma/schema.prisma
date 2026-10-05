@@ -1,0 +1,134 @@
+// Database schema. Run `npm run db:migrate` after changing it.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  posts       Post[]
+  collections Collection[]
+  tags        Tag[]
+  imports     Import[]
+
+  @@map("users")
+}
+
+enum PostKind {
+  REEL
+  POST
+
+  @@map("post_kind")
+}
+
+model Post {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  // Taken from the URL: /reel/<shortcode>/ or /p/<shortcode>/.
+  shortcode       String
+  url             String
+  kind            PostKind
+  caption         String?
+  creatorUsername String    @map("creator_username")
+  creatorName     String?   @map("creator_name")
+  creatorUrl      String?   @map("creator_url")
+  // The creator's hashtags, read-only. The user's own tags live in `tags`.
+  hashtags        String[]  @default([])
+  // Meta's id for the save; only present in saved_posts.json.
+  fbid            String?
+  savedAt         DateTime  @map("saved_at") @db.Timestamptz(3)
+  // Set when an import no longer contains this post; cleared if it reappears.
+  noLongerSavedAt DateTime? @map("no_longer_saved_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        PostTag[]
+  collections PostCollection[]
+
+  @@unique([userId, shortcode])
+  @@index([userId, savedAt(sort: Desc)])
+  @@map("posts")
+}
+
+model Collection {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  // The collection's fbid, so a renamed collection is still recognised.
+  externalId String   @map("external_id")
+  name       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts PostCollection[]
+
+  @@unique([userId, externalId])
+  @@map("collections")
+}
+
+model PostCollection {
+  postId       String @map("post_id") @db.Uuid
+  collectionId String @map("collection_id") @db.Uuid
+
+  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([postId, collectionId])
+  @@index([collectionId])
+  @@map("post_collections")
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  // As the user typed it, e.g. "Recipes".
+  name      String
+  // Trimmed and lowercased, e.g. "recipes", so "Recipes" and "recipes" are one tag.
+  nameKey   String   @map("name_key")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts PostTag[]
+
+  @@unique([userId, nameKey])
+  @@map("tags")
+}
+
+model PostTag {
+  postId    String   @map("post_id") @db.Uuid
+  tagId     String   @map("tag_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+  @@map("post_tags")
+}
+
+model Import {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  importedAt      DateTime @default(now()) @map("imported_at") @db.Timestamptz(3)
+  // The saved-date range the export covers; used for the "no longer saved" rule.
+  earliestSavedAt DateTime @map("earliest_saved_at") @db.Timestamptz(3)
+  latestSavedAt   DateTime @map("latest_saved_at") @db.Timestamptz(3)
+  newCount        Int      @map("new_count")
+  duplicateCount  Int      @map("duplicate_count")
+  invalidCount    Int      @map("invalid_count")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, importedAt(sort: Desc)])
+  @@map("imports")
+}
