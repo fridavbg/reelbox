@@ -1,0 +1,41 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/breakpoints" as *;
+
+// Same side padding as the header, so both line up on every page.
+.footer {
+  padding: 0 $space-4;
+  border-top: 1px solid $color-line;
+  background: $color-surface-alt;
+
+  @include respond-to(desktop) {
+    padding: 0 $space-8;
+  }
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  @include text-style(caption);
+
+  li {
+    display: flex;
+    align-items: center;
+  }
+
+  // Decorative, so screen readers skip it.
+  li + li::before {
+    content: "·" / "";
+    padding: 0 $space-1;
+    color: $color-ink-muted;
+  }
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+}

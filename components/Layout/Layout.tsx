@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Footer } from "../Footer/Footer";
 import styles from "./Layout.module.scss";
 
 type Props = {
@@ -29,6 +30,7 @@ export function Layout({ children, actions }: Props) {
         )}
       </header>
       <main className={styles.main}>{children}</main>
+      <Footer />
     </div>
   );
 }
