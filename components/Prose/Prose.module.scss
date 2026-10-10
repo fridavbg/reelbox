@@ -1,0 +1,62 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/breakpoints" as *;
+
+// Long lines are hard to read, so the text stays in a narrow column.
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  width: 100%;
+  max-width: 40rem;
+
+  h2 {
+    @include text-style(heading);
+    margin-top: $space-4;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    margin: 0;
+    padding-left: $space-6;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    @include text-style(small);
+  }
+
+  th,
+  td {
+    padding: $space-2;
+    border-bottom: 1px solid $color-line;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    @include text-style(label);
+  }
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.title {
+  @include text-style(title);
+
+  @include respond-to(desktop) {
+    @include text-style(display);
+  }
+}
+
+.updated {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
