@@ -39,6 +39,8 @@ Use a separate development database (for example a Neon branch), not production.
 
 Vercel deploys every branch as a preview and `main` to production. Production builds apply pending database migrations before building (`npm run build:vercel`, set in `vercel.json`), so the database is updated before the new code goes live. Preview builds skip migrations.
 
+Functions run in Frankfurt (`fra1`, set in `vercel.json`), the same region as the Neon database. Vercel's default is Washington D.C. (`iad1`), where every query would cross the Atlantic (~90 ms per round trip). The `x-vercel-id` response header shows the region a request ran in.
+
 Environment variables in Vercel (see `.env.example` for what each one is):
 
 | Variable                      | Production                                   | Preview                              |
