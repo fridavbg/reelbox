@@ -2,15 +2,17 @@
 @use "../styles/typography" as *;
 @use "../styles/breakpoints" as *;
 
+// Fills the page so the note sits just above the footer.
 .page {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: $space-8;
   width: 100%;
   max-width: 28rem;
-  min-height: 100vh;
   margin: 0 auto;
-  padding: $space-6;
+  // With the main padding, the heading starts about where the wireframe has it.
+  padding-top: $space-8 + $space-4;
 
   @include respond-to(tablet) {
     padding-top: $space-8 * 2;

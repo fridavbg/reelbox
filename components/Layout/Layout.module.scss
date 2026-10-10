@@ -15,6 +15,7 @@
   min-height: $header-height;
   padding: 0 $space-4;
   border-bottom: 1px solid $color-line;
+  background: $color-surface-alt;
 
   @include respond-to(desktop) {
     min-height: $header-height-desktop;
@@ -35,7 +36,11 @@
   gap: $space-2;
 }
 
+// Fills the space between header and footer, so the footer always sits at
+// the bottom. A column, so a page can push content to its bottom edge too.
 .main {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   width: 100%;
   max-width: $content-max-width;
