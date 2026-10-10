@@ -7,7 +7,11 @@ import { db } from "./db";
 import { deleteExpiredDemoUsers, seedDemoUser } from "./demo/demo-users";
 import { sendSignInCode } from "./email";
 import { serverEnv } from "./env";
-import { ALLOWED_ATTEMPTS, CODE_VALID_MINUTES } from "./sign-in-settings";
+import {
+  ALLOWED_ATTEMPTS,
+  CODE_VALID_MINUTES,
+  SESSION_DAYS,
+} from "./sign-in-settings";
 
 // Sign-in with a 6-digit email code. Shared by the app and the tests, so the
 // tests exercise the real settings.
@@ -48,6 +52,37 @@ export function onDemoUserCreated(
   };
 }
 
+/**
+ * Stores sessions without the IP address and browser that Better Auth records
+ * by default, because Reelbox never uses them. Each new session also deletes
+ * expired ones, which Better Auth would otherwise keep forever.
+ */
+export function sessionPrivacyHooks(
+  schedule: (task: () => Promise<unknown>) => void,
+): BetterAuthOptions["databaseHooks"] {
+  return {
+    session: {
+      create: {
+        async before(session) {
+          return { data: { ...session, ipAddress: null, userAgent: null } };
+        },
+        async after(_session, context) {
+          const adapter = context?.context.adapter;
+          if (!adapter) return;
+          schedule(() =>
+            adapter.deleteMany({
+              model: "session",
+              where: [
+                { field: "expiresAt", operator: "lt", value: new Date() },
+              ],
+            }),
+          );
+        },
+      },
+    },
+  };
+}
+
 function createAuth() {
   const env = serverEnv();
 
@@ -68,15 +103,26 @@ function createAuth() {
     advanced: { database: { generateId: "uuid" } },
     // Serverless instances don't share memory, so counters live in Postgres.
     rateLimit: { storage: "database" },
-    databaseHooks: onDemoUserCreated(async (userId) => {
-      await seedDemoUser(userId);
-      // Old demo users are cleaned up whenever a new one starts.
-      after(() =>
-        deleteExpiredDemoUsers().catch((error) =>
-          console.error("Failed to delete expired demo users", error),
+    session: { expiresIn: SESSION_DAYS * 24 * 60 * 60 },
+    databaseHooks: {
+      ...onDemoUserCreated(async (userId) => {
+        await seedDemoUser(userId);
+        // Old demo users are cleaned up whenever a new one starts.
+        after(() =>
+          deleteExpiredDemoUsers().catch((error) =>
+            console.error("Failed to delete expired demo users", error),
+          ),
+        );
+      }),
+      // After the response, so signing in doesn't wait for the cleanup.
+      ...sessionPrivacyHooks((task) =>
+        after(() =>
+          task().catch((error) =>
+            console.error("Failed to delete expired sessions", error),
+          ),
         ),
-      );
-    }),
+      ),
+    },
     plugins: [
       signInCodePlugin((email, code) =>
         // Send after the response, so the response time is the same whether
