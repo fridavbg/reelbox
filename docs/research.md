@@ -1,6 +1,6 @@
 # Reelbox – Research & Decisions
 
-_Last updated: 2026-10-02 (design locked)_
+_Last updated: 2026-10-10 (decisions from #4, #5 and #25)_
 
 Reelbox is a portfolio web app that helps people who save lots of Instagram reels for inspiration organize their saves, using the official Instagram data export.
 
@@ -19,6 +19,10 @@ Reelbox is a portfolio web app that helps people who save lots of Instagram reel
 | Import records | Store `imported_at`, `earliest_saved_at`, `latest_saved_at`, `new_count`, `duplicate_count`, `invalid_count` |
 | Unsaved posts | Keep them; flag "No longer saved on Instagram" only if the post's saved date is inside the new import's range |
 | Auth | Passwordless email codes + demo account for recruiters |
+| Auth library | Better Auth (#5): Auth.js is in maintenance mode and points new projects to Better Auth. Two defaults changed: codes are stored hashed, and rate limits are kept in Postgres because serverless instances don't share memory |
+| Email service | Brevo (#5): free, and sends from a verified personal address without owning a domain. Resend only emails your own address until a domain is verified |
+| ORM | Prisma 7 on the plain `pg` driver (#4): familiar, type-safe queries and versioned SQL migrations, while the app stays plain Postgres and portable |
+| Hosting region | Functions in Frankfurt (`fra1`), next to the Neon database (#25): Vercel's default, Washington D.C., put ~90 ms on every query. Starting the demo went from 3.7 s to 0.28 s |
 | Stack | Next.js (one fullstack app) + TypeScript, Postgres on Neon, Zod, Vitest + Playwright, Vercel |
 | Styling | Sass (SCSS modules), mobile-first, shared variables + breakpoint mixin |
 | Design (locked 2026-10-02) | Low-fi wireframes: 12 screens (10 mobile, 2 desktop) incl. empty, loading, error states. Design system "Saves Organizer" (to be renamed Reelbox): slate neutrals (#313E50, #3A435E, #455561, #5C6672, #6C6F7F) + amber accent #F2A541 (always ink text on it; links use #8A4B08), IBM Plex Sans, 4px spacing grid, no shadows. Changes after lock = new issue with a reason. |
@@ -59,11 +63,11 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 
 ## Open questions
 
-- [ ] Real export format: request my own export and inspect `saved_posts.json` / `saved_collections.json`
-- [ ] Are captions/hashtags in the export? (Believed: no)
-- [ ] Auth library with email-code support
-- [ ] Email-sending service and its free-tier limits
-- [ ] ORM choice
+- [x] Real export format: inspected my own export (#4). `saved_posts.json` and `saved_collections.json` hold post URLs (shortcode from `/reel/…` or `/p/…`), creator, saved date, collections and Meta's ids. Text has broken encoding (emoji and letters like "å" arrive as mangled bytes) and needs re-reading as UTF-8
+- [x] Are captions/hashtags in the export? **Yes**, both are included (#4)
+- [x] Auth library with email-code support: Better Auth (#5)
+- [x] Email-sending service and its free-tier limits: Brevo (#5), free plan 300 emails per day, shared by marketing and transactional emails
+- [x] ORM choice: Prisma (#4)
 - [ ] Vercel Hobby terms (believed non-commercial only)
 
 ## Risks
@@ -71,6 +75,8 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - Export format differs from expectations or changes later → validate with Zod, clear error messages
 - Neon cold start on first demo visit → loading state
 - Email codes landing in spam → demo account as fallback
+- Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 checks whether Brevo's open-tracking image is the trigger
+- Anyone can request sign-in codes for any address: the per-IP rate limit protects one inbox from one sender, but a coordinated attempt from many IPs could use up the free Brevo quota (300 emails per day) → per-email limit in #27
 
 ---
 
@@ -78,7 +84,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 
 - **No API for saves:** the Instagram Graph API only serves Business/Creator accounts and has no saved-posts endpoint.
 - **Export is the legal input:** the JSON export contains `saved_posts.json` and `saved_collections.json`.
-- **Hashtags likely not in the export:** it appears to hold only post URLs, creator usernames, timestamps and collection names. Verify.
+- **Captions and hashtags are in the export** (verified in #4, contrary to earlier sources): this makes tag suggestions much better. The export's text encoding is broken and must be repaired before storing.
 - **No auto-unsave:** bulk-unsave tools use browser automation (ToS risk).
 - **Neon over Supabase for the demo:** Supabase free projects pause after 1 week and need manual restore; Neon wakes on the next request.
 
