@@ -1,6 +1,6 @@
 # Reelbox – Research & Decisions
 
-_Last updated: 2026-10-10 (decisions from #4, #5 and #25)_
+_Last updated: 2026-10-10 (decisions from #4, #5 and #25; risks from #24 and #31)_
 
 Reelbox is a portfolio web app that helps people who save lots of Instagram reels for inspiration organize their saves, using the official Instagram data export.
 
@@ -75,7 +75,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - Export format differs from expectations or changes later → validate with Zod, clear error messages
 - Neon cold start on first demo visit → loading state
 - Email codes landing in spam → demo account as fallback
-- Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 checks whether Brevo's open-tracking image is the trigger
+- Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 found that Brevo adds an open-tracking image, a likely trigger (not confirmed). It can't be removed on the free plan, so tracking is set to anonymous and the privacy policy explains it (#31). Revisit with an email provider that allows turning tracking off
 - Anyone can request sign-in codes for any address: the per-IP rate limit protects one inbox from one sender, but a coordinated attempt from many IPs could use up the free Brevo quota (300 emails per day) → per-email limit in #27
 
 ---

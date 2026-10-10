@@ -81,6 +81,12 @@ erDiagram
 
 The schema lives in `prisma/schema.prisma`; migrations are in `prisma/migrations/`.
 
+## Privacy
+
+The privacy policy (`app/privacy/`) and terms of use (`app/terms/`) describe what the app actually does. The durations they state come from the app's settings (`lib/sign-in-settings.ts`, `lib/demo/demo-settings.ts`), and a test checks this. When a change affects what data is stored, why, or for how long, update the policy and its date in the same pull request.
+
+Sessions are stored without the IP address or browser, and expired sessions are deleted at the next sign-in (`sessionPrivacyHooks` in `lib/auth.ts`).
+
 ## License
 
 MIT
