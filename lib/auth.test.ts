@@ -1,13 +1,22 @@
 import { betterAuth } from "better-auth";
 import { memoryAdapter, type MemoryDB } from "better-auth/adapters/memory";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { demoPlugin, onDemoUserCreated, signInCodePlugin } from "./auth";
-import { CODE_VALID_MINUTES } from "./sign-in-settings";
+import {
+  demoPlugin,
+  onDemoUserCreated,
+  sessionPrivacyHooks,
+  signInCodePlugin,
+} from "./auth";
+import { CODE_VALID_MINUTES, SESSION_DAYS } from "./sign-in-settings";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Runs the real sign-in code settings against an in-memory database.
 function setup() {
   const sent: { email: string; code: string }[] = [];
   const seeded: string[] = [];
+  // Cleanups the app runs after the response; tests await them instead.
+  const scheduled: Promise<unknown>[] = [];
   const memory: MemoryDB = {
     user: [],
     session: [],
@@ -18,9 +27,13 @@ function setup() {
     secret: "test-secret-that-is-at-least-32-chars",
     baseURL: "http://localhost:3000",
     database: memoryAdapter(memory),
-    databaseHooks: onDemoUserCreated(async (userId) => {
-      seeded.push(userId);
-    }),
+    session: { expiresIn: (SESSION_DAYS * DAY_MS) / 1000 },
+    databaseHooks: {
+      ...onDemoUserCreated(async (userId) => {
+        seeded.push(userId);
+      }),
+      ...sessionPrivacyHooks((task) => scheduled.push(task())),
+    },
     plugins: [
       signInCodePlugin((email, code) => sent.push({ email, code })),
       demoPlugin(),
@@ -34,11 +47,27 @@ function setup() {
     return { response, code: sent.at(-1)!.code };
   }
 
-  function signIn(email: string, otp: string) {
-    return auth.api.signInEmailOTP({ body: { email, otp } });
+  function signIn(email: string, otp: string, headers?: Headers) {
+    return auth.api.signInEmailOTP({ body: { email, otp }, headers });
   }
 
-  return { auth, memory, sent, seeded, requestCode, signIn };
+  async function signInWithNewCode(email: string, headers?: Headers) {
+    const { code } = await requestCode(email);
+    return signIn(email, code, headers);
+  }
+
+  const cleanupsDone = () => Promise.all(scheduled);
+
+  return {
+    auth,
+    memory,
+    sent,
+    seeded,
+    requestCode,
+    signIn,
+    signInWithNewCode,
+    cleanupsDone,
+  };
 }
 
 const email = "user@example.com";
@@ -123,6 +152,54 @@ describe("sign-in codes", () => {
     const existing = await requestCode(email);
     const unknown = await requestCode("someone-new@example.com");
     expect(existing.response).toEqual(unknown.response);
+  });
+});
+
+describe("sessions", () => {
+  beforeEach(() => vi.useFakeTimers({ toFake: ["Date"] }));
+  afterEach(() => vi.useRealTimers());
+
+  it("stores no IP address or browser", async () => {
+    const { memory, signInWithNewCode } = setup();
+    await signInWithNewCode(
+      email,
+      new Headers({
+        "x-forwarded-for": "203.0.113.7",
+        "user-agent": "Mozilla/5.0 Test",
+      }),
+    );
+    expect(memory.session).toHaveLength(1);
+    expect(memory.session[0].ipAddress).toBeNull();
+    expect(memory.session[0].userAgent).toBeNull();
+  });
+
+  it(`lasts ${SESSION_DAYS} days`, async () => {
+    const { memory, signInWithNewCode } = setup();
+    await signInWithNewCode(email);
+    const { createdAt, expiresAt } = memory.session[0];
+    expect(expiresAt.getTime() - createdAt.getTime()).toBe(
+      SESSION_DAYS * DAY_MS,
+    );
+  });
+
+  it("deletes expired sessions when someone signs in", async () => {
+    const { memory, signInWithNewCode, cleanupsDone } = setup();
+    await signInWithNewCode(email);
+    vi.setSystemTime(Date.now() + SESSION_DAYS * DAY_MS + 1_000);
+    const later = await signInWithNewCode("someone-else@example.com");
+    await cleanupsDone();
+    expect(memory.session.map((session) => session.token)).toEqual([
+      later.token,
+    ]);
+  });
+
+  it("keeps sessions that haven't expired", async () => {
+    const { memory, signInWithNewCode, cleanupsDone } = setup();
+    await signInWithNewCode(email);
+    vi.setSystemTime(Date.now() + SESSION_DAYS * DAY_MS - 1_000);
+    await signInWithNewCode("someone-else@example.com");
+    await cleanupsDone();
+    expect(memory.session).toHaveLength(2);
   });
 });
 
