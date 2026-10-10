@@ -19,3 +19,5 @@ jobs:
       - run: npm run format:check
       - run: npm run typecheck
       - run: npm test
+      # No environment variables on purpose: a build that needs secrets fails here.
+      - run: npm run build
