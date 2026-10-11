@@ -1,6 +1,6 @@
 # Reelbox – Research & Decisions
 
-_Last updated: 2026-10-10 (decisions from #4, #5 and #25; risks from #24 and #31)_
+_Last updated: 2026-10-11 (decisions from #4, #5, #7, #25 and #31; risks from #7, #24 and #31)_
 
 Reelbox is a portfolio web app that helps people who save lots of Instagram reels for inspiration organize their saves, using the official Instagram data export.
 
@@ -23,6 +23,14 @@ Reelbox is a portfolio web app that helps people who save lots of Instagram reel
 | Email service | Brevo (#5): free, and sends from a verified personal address without owning a domain. Resend only emails your own address until a domain is verified |
 | ORM | Prisma 7 on the plain `pg` driver (#4): familiar, type-safe queries and versioned SQL migrations, while the app stays plain Postgres and portable |
 | Hosting region | Functions in Frankfurt (`fra1`), next to the Neon database (#25): Vercel's default, Washington D.C., put ~90 ms on every query. Starting the demo went from 3.7 s to 0.28 s |
+| Export input | The ZIP or the two JSON files, read in the browser. Only `saved_posts.json` and `saved_collections.json` are unpacked, so messages and the rest never leave the device; the JSON files are also too large for one serverless request (#7) |
+| ZIP library | fflate: small, no dependencies (#7) |
+| Export parsing | Meta's `label_values` format, validated per entry with Zod. Broken entries are reported with a reason instead of failing the whole import; text is re-read as UTF-8 to repair Meta's encoding bug (#7) |
+| Links from the export | Post and profile links are rebuilt from the shortcode and username, never copied, so a manipulated file can't plant a foreign or `javascript:` link (#7) |
+| Saved dates | Only dates from Instagram's launch (6 Oct 2010) to one day in the future; a fake date would stretch the range that decides "no longer saved" (#7) |
+| Posts only in a collection | Reported as invalid: they have no saved date, which the "no longer saved" rule needs (#7) |
+| Sessions | Stored without IP address or browser; expired sessions deleted on sign-in (#31) |
+| Privacy policy | Static pages; the durations they state come from the app's settings, checked by a test (#31) |
 | Stack | Next.js (one fullstack app) + TypeScript, Postgres on Neon, Zod, Vitest + Playwright, Vercel |
 | Styling | Sass (SCSS modules), mobile-first, shared variables + breakpoint mixin |
 | Design (locked 2026-10-02) | Low-fi wireframes: 12 screens (10 mobile, 2 desktop) incl. empty, loading, error states. Design system "Saves Organizer" (to be renamed Reelbox): slate neutrals (#313E50, #3A435E, #455561, #5C6672, #6C6F7F) + amber accent #F2A541 (always ink text on it; links use #8A4B08), IBM Plex Sans, 4px spacing grid, no shadows. Changes after lock = new issue with a reason. |
@@ -72,7 +80,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 
 ## Risks
 
-- Export format differs from expectations or changes later → validate with Zod, clear error messages
+- Export format differs from expectations or changes later → validate with Zod, clear error messages; the parser accepts unknown fields, but Meta's older format (`string_map_data`) isn't supported and is rejected with a clear message (#7)
 - Neon cold start on first demo visit → loading state
 - Email codes landing in spam → demo account as fallback
 - Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 found that Brevo adds an open-tracking image, a likely trigger (not confirmed). It can't be removed on the free plan, so tracking is set to anonymous and the privacy policy explains it (#31). Revisit with an email provider that allows turning tracking off
@@ -85,6 +93,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - **No API for saves:** the Instagram Graph API only serves Business/Creator accounts and has no saved-posts endpoint.
 - **Export is the legal input:** the JSON export contains `saved_posts.json` and `saved_collections.json`.
 - **Captions and hashtags are in the export** (verified in #4, contrary to earlier sources): this makes tag suggestions much better. The export's text encoding is broken and must be repaired before storing.
+- **Real export format (#7):** a list of labelled fields per post (`label_values`), with Owner, Hashtags and Brand partner as nested groups. About 7 MB per file for 2,200 saves, which is above Vercel's 4.5 MB request limit, so parsing happens in the browser.
 - **No auto-unsave:** bulk-unsave tools use browser automation (ToS risk).
 - **Neon over Supabase for the demo:** Supabase free projects pause after 1 week and need manual restore; Neon wakes on the next request.
 
