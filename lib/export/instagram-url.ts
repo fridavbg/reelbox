@@ -15,7 +15,7 @@ const KINDS = new Map<string, PostKind>([
   ["reels", "REEL"],
 ]);
 // Shortcodes are case-sensitive, so they're kept exactly as written.
-const SHORTCODE = /^[A-Za-z0-9_-]+$/;
+export const SHORTCODE = /^[A-Za-z0-9_-]+$/;
 
 /**
  * Reads a post or reel link, such as `https://www.instagram.com/reel/AbC123/`,
