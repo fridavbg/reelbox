@@ -1,6 +1,6 @@
 # Reelbox – Research & Decisions
 
-_Last updated: 2026-10-11 (decisions from #4, #5, #7, #25 and #31; risks from #7, #24 and #31)_
+_Last updated: 2026-10-28 (decisions from #4, #5, #7, #25, #31 and #34; risks from #7, #24, #31 and #34)_
 
 Reelbox is a portfolio web app that helps people who save lots of Instagram reels for inspiration organize their saves, using the official Instagram data export.
 
@@ -20,7 +20,7 @@ Reelbox is a portfolio web app that helps people who save lots of Instagram reel
 | Unsaved posts | Keep them; flag "No longer saved on Instagram" only if the post's saved date is inside the new import's range |
 | Auth | Passwordless email codes + demo account for recruiters |
 | Auth library | Better Auth (#5): Auth.js is in maintenance mode and points new projects to Better Auth. Two defaults changed: codes are stored hashed, and rate limits are kept in Postgres because serverless instances don't share memory |
-| Email service | Brevo (#5): free, and sends from a verified personal address without owning a domain. Resend only emails your own address until a domain is verified |
+| Email service | Gmail SMTP from a dedicated projects account, with an app password per project (#34). Replaces Brevo (#5), which sends from its shared `brevosend.com` domain when the sender has no domain of its own; Spamhaus listed that domain and the emails bounced. A domain would fix it but isn't free. Resend only emails your own address until a domain is verified |
 | ORM | Prisma 7 on the plain `pg` driver (#4): familiar, type-safe queries and versioned SQL migrations, while the app stays plain Postgres and portable |
 | Hosting region | Functions in Frankfurt (`fra1`), next to the Neon database (#25): Vercel's default, Washington D.C., put ~90 ms on every query. Starting the demo went from 3.7 s to 0.28 s |
 | Export input | The ZIP or the two JSON files, read in the browser. Only `saved_posts.json` and `saved_collections.json` are unpacked, so messages and the rest never leave the device; the JSON files are also too large for one serverless request (#7) |
@@ -84,6 +84,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - Neon cold start on first demo visit → loading state
 - Email codes landing in spam → demo account as fallback
 - Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 found that Brevo adds an open-tracking image, a likely trigger (not confirmed). It can't be removed on the free plan, so tracking is set to anonymous and the privacy policy explains it (#31). Revisit with an email provider that allows turning tracking off
+- Shared sending domains carry other senders' reputation: on 2026-10-27 every sign-in email bounced with `550 12361222.brevosend.com listed in Spamhaus DBL`. Spamhaus had listed all of `brevosend.com` as a phishing domain (DBL code `127.0.1.4`), so every Brevo sender without their own domain was blocked. Brevo accepts the email before the bounce, so the app still showed "code sent" → switch to Gmail SMTP (#34); the demo login still works without email
 - Anyone can request sign-in codes for any address: the per-IP rate limit protects one inbox from one sender, but a coordinated attempt from many IPs could use up the free Brevo quota (300 emails per day) → per-email limit in #27
 
 ---
