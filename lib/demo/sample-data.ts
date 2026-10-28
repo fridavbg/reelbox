@@ -1,6 +1,8 @@
 // Sample saves for the demo. Creators, captions and shortcodes are invented,
 // so no real person's account appears in the demo.
 
+import { tagKey } from "@/lib/tags";
+
 type SamplePost = {
   shortcode: string;
   kind: "REEL" | "POST";
@@ -344,7 +346,7 @@ export function buildDemoData(userId: string, now: Date) {
     id: id(),
     userId,
     name,
-    nameKey: name.trim().toLowerCase(),
+    nameKey: tagKey(name),
     createdAt: now,
   }));
   const tagId = new Map(tags.map((tag) => [tag.name, tag.id]));
