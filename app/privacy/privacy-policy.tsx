@@ -11,7 +11,7 @@ export function PrivacyPolicy() {
   const contact = <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>;
 
   return (
-    <Prose title="Privacy policy" updated="2026-10-10">
+    <Prose title="Privacy policy" updated="2026-10-28">
       <h2>Who runs Reelbox</h2>
       <p>
         Reelbox is a personal portfolio project by {OWNER_NAME}, not a company.
@@ -52,11 +52,9 @@ export function PrivacyPolicy() {
 
       <h2>Sign-in emails</h2>
       <p>
-        Emails are sent by Brevo, which adds a small invisible image that
-        records whether an email was opened. Brevo doesn&apos;t let me turn this
-        off on its free plan, so I&apos;ve set it to anonymous: opens
-        aren&apos;t linked to you. I don&apos;t use this data. Blocking images
-        in your email app stops it.
+        Sign-in codes are sent from a Gmail account through Google. The emails
+        contain no tracking: nothing records whether you open them. Google keeps
+        a copy of each sent email in that account.
       </p>
 
       <h2>What I never do</h2>
@@ -87,16 +85,17 @@ export function PrivacyPolicy() {
             <td>Frankfurt</td>
           </tr>
           <tr>
-            <td>Brevo</td>
+            <td>Google (Gmail)</td>
             <td>Sending sign-in emails</td>
-            <td>EU (France, Germany, Belgium)</td>
+            <td>Google&apos;s data centers, worldwide</td>
           </tr>
         </tbody>
       </table>
       <p>
-        Vercel and Neon are US companies. Transfers to them are covered by the
-        EU-U.S. Data Privacy Framework. Vercel also keeps short-lived request
-        logs, which include IP addresses, to run and protect its platform.
+        Vercel, Neon and Google are US companies. Transfers to them are covered
+        by the EU-U.S. Data Privacy Framework. Vercel also keeps short-lived
+        request logs, which include IP addresses, to run and protect its
+        platform.
       </p>
 
       <h2>Your rights</h2>
