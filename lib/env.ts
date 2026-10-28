@@ -12,15 +12,25 @@ const serverEnvSchema = z
     BETTER_AUTH_SECRET: z.string().min(32),
     // Used when the request's own host isn't one of the allowed hosts.
     BETTER_AUTH_URL: z.url({ protocol: /^https?$/ }),
-    // Brevo sends the sign-in emails. Without it, codes are only logged in
+    // Gmail sends the sign-in emails. Without it, codes are only logged in
     // local development.
-    BREVO_API_KEY: emptyAsUnset(z.string().optional()),
-    EMAIL_FROM: emptyAsUnset(z.email().optional()),
+    GMAIL_USER: emptyAsUnset(z.email().optional()),
+    // Google shows app passwords in groups of four ("abcd efgh ..."), so
+    // spaces from copy-pasting are removed.
+    GMAIL_APP_PASSWORD: emptyAsUnset(
+      z
+        .string()
+        .transform((value) => value.replace(/\s/g, ""))
+        .optional(),
+    ),
   })
-  .refine((env) => Boolean(env.BREVO_API_KEY) === Boolean(env.EMAIL_FROM), {
-    message: "Set both BREVO_API_KEY and EMAIL_FROM, or neither",
-    path: ["EMAIL_FROM"],
-  });
+  .refine(
+    (env) => Boolean(env.GMAIL_USER) === Boolean(env.GMAIL_APP_PASSWORD),
+    {
+      message: "Set both GMAIL_USER and GMAIL_APP_PASSWORD, or neither",
+      path: ["GMAIL_APP_PASSWORD"],
+    },
+  );
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
