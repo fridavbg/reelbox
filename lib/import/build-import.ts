@@ -186,13 +186,17 @@ function collectionRows(
  *
  * @param collection - A collection from the upload.
  * @param postId - New posts' ids by shortcode.
- * @returns Ids of the collection's new posts; posts already in the library
- * are left out.
+ * @returns Ids of the collection's new posts, each once; posts already in the
+ * library are left out.
  */
 const newPostIdsIn = (
   collection: ParsedCollection,
   postId: Map<string, string>,
-) => collection.shortcodes.flatMap((shortcode) => postId.get(shortcode) ?? []);
+) => [
+  ...new Set(
+    collection.shortcodes.flatMap((shortcode) => postId.get(shortcode) ?? []),
+  ),
+];
 
 /**
  * Tags a collection's new posts with a tag named after it. An existing tag
@@ -262,8 +266,8 @@ function postCollectionRows(
 
 /**
  * The `imports` row. Its date range covers the whole export, duplicates
- * included: it's what #9 compares against to flag posts that are no longer
- * saved.
+ * included, since a post is only flagged as no longer saved if its saved date
+ * is inside the range of the latest import.
  *
  * @param userId - The importing user.
  * @param posts - Every post in the upload, duplicates included.
