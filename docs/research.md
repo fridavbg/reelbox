@@ -74,7 +74,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - [x] Real export format: inspected my own export (#4). `saved_posts.json` and `saved_collections.json` hold post URLs (shortcode from `/reel/…` or `/p/…`), creator, saved date, collections and Meta's ids. Text has broken encoding (emoji and letters like "å" arrive as mangled bytes) and needs re-reading as UTF-8
 - [x] Are captions/hashtags in the export? **Yes**, both are included (#4)
 - [x] Auth library with email-code support: Better Auth (#5)
-- [x] Email-sending service and its free-tier limits: Brevo (#5), free plan 300 emails per day, shared by marketing and transactional emails
+- [x] Email-sending service and its free-tier limits: Brevo (#5), free plan 300 emails per day; replaced by Gmail SMTP (#34), about 500 emails per day, shared by all projects on the account
 - [x] ORM choice: Prisma (#4)
 - [ ] Vercel Hobby terms (believed non-commercial only)
 
@@ -83,9 +83,10 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - Export format differs from expectations or changes later → validate with Zod, clear error messages; the parser accepts unknown fields, but Meta's older format (`string_map_data`) isn't supported and is rejected with a clear message (#7)
 - Neon cold start on first demo visit → loading state
 - Email codes landing in spam → demo account as fallback
-- Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 found that Brevo adds an open-tracking image, a likely trigger (not confirmed). It can't be removed on the free plan, so tracking is set to anonymous and the privacy policy explains it (#31). Revisit with an email provider that allows turning tracking off
+- Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 found that Brevo adds an open-tracking image, a likely trigger (not confirmed). It can't be removed on the free plan, so tracking is set to anonymous and the privacy policy explains it (#31). Revisit with an email provider that allows turning tracking off → resolved by Gmail SMTP (#34), which adds no tracking
 - Shared sending domains carry other senders' reputation: on 2026-10-27 every sign-in email bounced with `550 12361222.brevosend.com listed in Spamhaus DBL`. Spamhaus had listed all of `brevosend.com` as a phishing domain (DBL code `127.0.1.4`), so every Brevo sender without their own domain was blocked. Brevo accepts the email before the bounce, so the app still showed "code sent" → switch to Gmail SMTP (#34); the demo login still works without email
-- Anyone can request sign-in codes for any address: the per-IP rate limit protects one inbox from one sender, but a coordinated attempt from many IPs could use up the free Brevo quota (300 emails per day) → per-email limit in #27
+- Anyone can request sign-in codes for any address: the per-IP rate limit protects one inbox from one sender, but a coordinated attempt from many IPs could use up the Gmail quota (about 500 emails per day, shared by all projects on the account; going over blocks sending for up to a day) → per-email limit in #27
+- The Gmail app password can read and send all email in the projects account → dedicated account, one app password per project so each can be revoked alone; stored only in `.env` and Vercel
 
 ---
 
