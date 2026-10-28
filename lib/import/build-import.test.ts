@@ -177,6 +177,15 @@ describe("buildImport", () => {
     expect(result.summary.tagsAddedCount).toBe(0);
   });
 
+  it("links a post once, even if its collection lists it twice", () => {
+    const result = build({
+      posts: [post("A")],
+      collections: [collection("c1", "Recipes", ["A", "A"])],
+    });
+    expect(result.postCollections).toHaveLength(1);
+    expect(result.postTags).toHaveLength(1);
+  });
+
   it("adds new collections and links their new posts", () => {
     const result = build({
       posts: [post("A")],
