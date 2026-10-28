@@ -15,15 +15,25 @@ describe("parseServerEnv", () => {
   it("accepts a valid environment with email settings", () => {
     const env = {
       ...validEnv,
-      BREVO_API_KEY: "key",
-      EMAIL_FROM: "codes@example.com",
+      GMAIL_USER: "codes@example.com",
+      GMAIL_APP_PASSWORD: "abcdefghijklmnop",
     };
     expect(parseServerEnv(env)).toEqual(env);
   });
 
+  it("removes the spaces Google shows in app passwords", () => {
+    expect(
+      parseServerEnv({
+        ...validEnv,
+        GMAIL_USER: "codes@example.com",
+        GMAIL_APP_PASSWORD: "abcd efgh ijkl mnop",
+      }).GMAIL_APP_PASSWORD,
+    ).toBe("abcdefghijklmnop");
+  });
+
   it("treats empty email settings as not set, like in .env.example", () => {
     expect(
-      parseServerEnv({ ...validEnv, BREVO_API_KEY: "", EMAIL_FROM: "" }),
+      parseServerEnv({ ...validEnv, GMAIL_USER: "", GMAIL_APP_PASSWORD: "" }),
     ).toEqual(validEnv);
   });
 
@@ -45,10 +55,10 @@ describe("parseServerEnv", () => {
     ).toThrow("BETTER_AUTH_SECRET");
   });
 
-  it("rejects an email API key without a sender address", () => {
-    expect(() => parseServerEnv({ ...validEnv, BREVO_API_KEY: "key" })).toThrow(
-      "EMAIL_FROM",
-    );
+  it("rejects a Gmail address without an app password", () => {
+    expect(() =>
+      parseServerEnv({ ...validEnv, GMAIL_USER: "codes@example.com" }),
+    ).toThrow("GMAIL_APP_PASSWORD");
   });
 
   it("never includes the value in the error", () => {

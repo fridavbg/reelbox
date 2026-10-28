@@ -43,13 +43,13 @@ Functions run in Frankfurt (`fra1`, set in `vercel.json`), the same region as th
 
 Environment variables in Vercel (see `.env.example` for what each one is):
 
-| Variable                      | Production                                   | Preview                              |
-| ----------------------------- | -------------------------------------------- | ------------------------------------ |
-| `DATABASE_URL`                | Production database, pooled                  | Development database, pooled         |
-| `DATABASE_URL_UNPOOLED`       | Production database, direct (for migrations) | Not needed                           |
-| `BETTER_AUTH_SECRET`          | Its own secret                               | A different secret                   |
-| `BETTER_AUTH_URL`             | The production URL                           | The production URL (only a fallback) |
-| `BREVO_API_KEY`, `EMAIL_FROM` | Brevo key and verified sender                | Same                                 |
+| Variable                           | Production                                   | Preview                              |
+| ---------------------------------- | -------------------------------------------- | ------------------------------------ |
+| `DATABASE_URL`                     | Production database, pooled                  | Development database, pooled         |
+| `DATABASE_URL_UNPOOLED`            | Production database, direct (for migrations) | Not needed                           |
+| `BETTER_AUTH_SECRET`               | Its own secret                               | A different secret                   |
+| `BETTER_AUTH_URL`                  | The production URL                           | The production URL (only a fallback) |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | Gmail address and its Reelbox app password   | Same                                 |
 
 Preview URLs change with every deployment. Sign-in follows the URL the request came in on, as long as it matches the allowed hosts in `lib/auth.ts`.
 
