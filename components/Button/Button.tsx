@@ -1,8 +1,21 @@
 import type { ButtonHTMLAttributes } from "react";
 import styles from "./Button.module.scss";
 
+type Variant = "primary" | "secondary" | "text";
+
+/**
+ * The button look, for links and labels that should look like a button.
+ *
+ * @param variant - Which button style.
+ * @param className - Extra classes to add.
+ * @returns The class names to put on the element.
+ */
+export function buttonClassName(variant: Variant, className?: string) {
+  return [styles.button, styles[variant], className].filter(Boolean).join(" ");
+}
+
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "text";
+  variant?: Variant;
   // Shows `loadingLabel` while a request runs.
   loading?: boolean;
   loadingLabel?: string;
@@ -20,9 +33,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={[styles.button, styles[variant], className]
-        .filter(Boolean)
-        .join(" ")}
+      className={buttonClassName(variant, className)}
       aria-busy={loading || undefined}
       {...rest}
     >
