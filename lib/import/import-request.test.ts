@@ -29,7 +29,7 @@ const upload = {
   invalidCount: 2,
 };
 
-/** What the server receives: the upload after JSON, so dates are strings. */
+// What the server receives: the upload after JSON, so dates are strings.
 const sent = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
 const withPost = (changes: Record<string, unknown>) =>
