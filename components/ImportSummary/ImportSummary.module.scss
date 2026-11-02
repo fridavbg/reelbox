@@ -1,0 +1,107 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/breakpoints" as *;
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  align-items: stretch;
+
+  @include respond-to(tablet) {
+    align-items: flex-start;
+  }
+}
+
+.heading {
+  display: flex;
+  gap: $space-4;
+  align-items: center;
+}
+
+.icon {
+  flex-shrink: 0;
+  color: $color-success;
+}
+
+.title {
+  @include text-style(title);
+}
+
+// Three equal boxes that also fit at 320px.
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $space-2;
+  width: 100%;
+  max-width: 480px;
+}
+
+.count {
+  padding: $space-4 $space-2;
+  border: 1px solid $color-line;
+  border-radius: $radius-lg;
+
+  dt {
+    @include text-style(caption);
+    color: $color-ink-muted;
+  }
+
+  dd {
+    margin: $space-1 0 0;
+    @include text-style(title);
+  }
+}
+
+.details {
+  @include text-style(small);
+  color: $color-ink-soft;
+
+  summary {
+    display: flex;
+    align-items: center;
+    min-height: $touch-target;
+    color: $color-accent-strong;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: $space-1;
+    margin: 0;
+    padding-left: $space-6;
+  }
+}
+
+// Long links break anywhere instead of widening the page.
+.url {
+  color: $color-ink-muted;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  @include text-style(small);
+  color: $color-ink-soft;
+}
+
+// Stacked full width on small screens, side by side from tablet up.
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+
+  @include respond-to(tablet) {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+.tip {
+  padding: $space-4;
+  border-radius: $radius-md;
+  background: $color-surface-alt;
+  @include text-style(caption);
+  color: $color-ink-soft;
+}

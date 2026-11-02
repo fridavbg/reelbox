@@ -12,5 +12,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/saves/:path*"],
+  matcher: ["/saves/:path*", "/import"],
 };
