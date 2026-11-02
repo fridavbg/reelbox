@@ -1,5 +1,6 @@
 import { unzipSync } from "fflate";
 import {
+  FILES_UNREADABLE,
   HTML_EXPORT,
   JSON_TOO_LARGE,
   MIXED_FILES,
@@ -7,6 +8,7 @@ import {
   NO_POSTS_FILE,
   NOT_A_ZIP,
   ONE_ZIP,
+  POSTS_FILE_TOO,
   WRONG_TYPE,
   ZIP_TOO_LARGE,
 } from "./export-messages";
@@ -33,6 +35,21 @@ const isJson = (upload: Upload) => fileName(upload.name).endsWith(".json");
 const utf8 = new TextDecoder("utf-8");
 
 /**
+ * Reads a chosen file's bytes.
+ *
+ * @param upload - The chosen file.
+ * @returns The bytes, or null if the file can't be opened any more, e.g. it
+ *   was moved or deleted after it was chosen.
+ */
+async function bytesOf(upload: Upload) {
+  try {
+    return new Uint8Array(await upload.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Reads the two saved files from Instagram's export ZIP, or from the JSON
  * files themselves. Runs in the browser, so the rest of the export (messages,
  * followers and so on) is never uploaded.
@@ -53,12 +70,14 @@ export async function readExportFiles(uploads: Upload[]): Promise<ReadResult> {
 
 async function readZip(zip: Upload): Promise<ReadResult> {
   if (zip.size > MAX_ZIP_MB * MB) return { ok: false, error: ZIP_TOO_LARGE };
+  const bytes = await bytesOf(zip);
+  if (!bytes) return { ok: false, error: FILES_UNREADABLE };
 
   let html = false;
   let tooLarge = false;
   let entries: Record<string, Uint8Array>;
   try {
-    entries = unzipSync(new Uint8Array(await zip.arrayBuffer()), {
+    entries = unzipSync(bytes, {
       // Only the two saved files are decompressed; everything else is skipped.
       filter: (entry) => {
         const name = fileName(entry.name);
@@ -102,17 +121,20 @@ async function readJsonFiles(jsons: Upload[]): Promise<ReadResult> {
   if (jsons.some((upload) => upload !== posts && upload !== collections)) {
     return { ok: false, error: WRONG_TYPE };
   }
-  if (!posts) return { ok: false, error: NO_POSTS_FILE };
+  if (!posts) return { ok: false, error: POSTS_FILE_TOO };
   if (jsons.some((upload) => upload.size > MAX_JSON_MB * MB)) {
     return { ok: false, error: JSON_TOO_LARGE };
   }
-  const read = async (upload: Upload) =>
-    utf8.decode(new Uint8Array(await upload.arrayBuffer()));
+  const postBytes = await bytesOf(posts);
+  const collectionBytes = collections ? await bytesOf(collections) : null;
+  if (!postBytes || (collections && !collectionBytes)) {
+    return { ok: false, error: FILES_UNREADABLE };
+  }
   return {
     ok: true,
     files: {
-      posts: await read(posts),
-      collections: collections ? await read(collections) : null,
+      posts: utf8.decode(postBytes),
+      collections: collectionBytes ? utf8.decode(collectionBytes) : null,
     },
   };
 }

@@ -1,6 +1,7 @@
 import { strToU8, zipSync } from "fflate";
 import { describe, expect, it } from "vitest";
 import {
+  FILES_UNREADABLE,
   HTML_EXPORT,
   JSON_TOO_LARGE,
   MIXED_FILES,
@@ -8,6 +9,7 @@ import {
   NO_POSTS_FILE,
   NOT_A_ZIP,
   ONE_ZIP,
+  POSTS_FILE_TOO,
   WRONG_TYPE,
   ZIP_TOO_LARGE,
 } from "./export-messages";
@@ -116,11 +118,11 @@ describe("readExportFiles: JSON files", () => {
     expect(result).toEqual({ ok: true, files: { posts, collections: null } });
   });
 
-  it("needs saved_posts.json", async () => {
+  it("asks for saved_posts.json too when only the collections are chosen", async () => {
     const result = await readExportFiles([
       file("saved_collections.json", collections),
     ]);
-    expect(result).toEqual({ ok: false, error: NO_POSTS_FILE });
+    expect(result).toEqual({ ok: false, error: POSTS_FILE_TOO });
   });
 
   it("rejects a random JSON file on its own", async () => {
@@ -163,4 +165,21 @@ describe("readExportFiles: wrong choices", () => {
     ]);
     expect(result).toEqual({ ok: false, error: MIXED_FILES });
   });
+});
+
+describe("readExportFiles: files that can't be opened", () => {
+  // E.g. a file moved or deleted after it was chosen.
+  const unreadable = (name: string): Upload => ({
+    name,
+    size: 1,
+    arrayBuffer: () => Promise.reject(new DOMException("", "NotReadableError")),
+  });
+
+  it.each(["export.zip", "saved_posts.json"])(
+    "asks to choose %s again",
+    async (name) => {
+      const result = await readExportFiles([unreadable(name)]);
+      expect(result).toEqual({ ok: false, error: FILES_UNREADABLE });
+    },
+  );
 });

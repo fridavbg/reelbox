@@ -14,11 +14,14 @@ export const MIXED_FILES = "Choose either the ZIP or the JSON files, not both.";
 export const ONE_ZIP = "Choose one ZIP at a time.";
 export const ZIP_TOO_LARGE = `This ZIP is larger than ${MAX_ZIP_MB} MB. ${SMALLER_EXPORT}`;
 export const JSON_TOO_LARGE = `This file is larger than ${MAX_JSON_MB} MB. ${SMALLER_EXPORT}`;
+export const FILES_UNREADABLE =
+  "We couldn't open your export. Please try again.";
 export const NOT_A_ZIP =
   "We couldn't open this ZIP. Download the export again and try once more.";
 export const HTML_EXPORT =
   "This export is in HTML format. Request a new export in JSON format.";
 export const NO_POSTS_FILE = `We couldn't find ${POSTS_FILE}. ${SMALLER_EXPORT}`;
+export const POSTS_FILE_TOO = `Choose ${POSTS_FILE} too. ${COLLECTIONS_FILE} only lists your collections.`;
 export const NOT_AN_EXPORT =
   "We couldn't find your saves in this file. Check that you chose JSON format and ticked Saved.";
 export const NO_SAVES =
