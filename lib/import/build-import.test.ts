@@ -5,10 +5,14 @@ import {
   UNREADABLE_ENTRY,
 } from "@/lib/export/export-messages";
 import { COLLECTIONS_FILE, POSTS_FILE } from "@/lib/export/export-settings";
-import type { ParsedCollection, ParsedPost } from "@/lib/export/parse-export";
+import type {
+  InvalidEntry,
+  ParsedCollection,
+  ParsedPost,
+} from "@/lib/export/parse-export";
 import {
   buildImport,
-  countUnreadableSaves,
+  splitUnreadable,
   type ExistingLibrary,
   type ImportInput,
 } from "./build-import";
@@ -245,15 +249,31 @@ describe("buildImport", () => {
   });
 });
 
-describe("countUnreadableSaves", () => {
-  it("counts problems with saves, not with whole collections", () => {
-    expect(
-      countUnreadableSaves([
-        { file: POSTS_FILE, position: 1, reason: UNREADABLE_ENTRY },
-        { file: COLLECTIONS_FILE, position: 2, reason: NOT_IN_SAVED_POSTS },
-        { file: COLLECTIONS_FILE, position: 3, reason: UNREADABLE_ENTRY },
-        { file: COLLECTIONS_FILE, position: 4, reason: NO_COLLECTION_ID },
-      ]),
-    ).toBe(2);
+describe("splitUnreadable", () => {
+  it("separates problems with saves from problems with whole collections", () => {
+    const save: InvalidEntry = {
+      file: POSTS_FILE,
+      position: 1,
+      reason: UNREADABLE_ENTRY,
+    };
+    const missing: InvalidEntry = {
+      file: COLLECTIONS_FILE,
+      position: 2,
+      reason: NOT_IN_SAVED_POSTS,
+    };
+    const broken: InvalidEntry = {
+      file: COLLECTIONS_FILE,
+      position: 3,
+      reason: UNREADABLE_ENTRY,
+    };
+    const noId: InvalidEntry = {
+      file: COLLECTIONS_FILE,
+      position: 4,
+      reason: NO_COLLECTION_ID,
+    };
+    expect(splitUnreadable([save, missing, broken, noId])).toEqual({
+      saves: [save, missing],
+      collections: [broken, noId],
+    });
   });
 });

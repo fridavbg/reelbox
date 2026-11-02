@@ -17,6 +17,14 @@ export type ImportInput = {
   invalidCount: number;
 };
 
+/** The counts shown to the user after an import. */
+export type ImportSummary = {
+  newCount: number;
+  duplicateCount: number;
+  invalidCount: number;
+  tagsAddedCount: number;
+};
+
 /** What the user already has, read inside the import's transaction. */
 export type ExistingLibrary = {
   shortcodes: string[];
@@ -25,19 +33,20 @@ export type ExistingLibrary = {
 };
 
 /**
- * Counts the saves that couldn't be read, for "Couldn't read" in the summary.
- * Problems with a whole collection are still listed to the user, but aren't
- * counted, since they aren't a single save.
+ * Separates problems with single saves, counted as "Couldn't read" in the
+ * summary, from problems with a whole collection, which aren't a save.
  *
  * @param invalid - Everything the parser couldn't read, from both files.
- * @returns How many of those entries are about a single save.
+ * @returns The problems with saves, and the problems with collections.
  */
-export function countUnreadableSaves(invalid: InvalidEntry[]) {
-  return invalid.filter(
-    (entry) =>
-      entry.file !== COLLECTIONS_FILE ||
-      (entry.reason !== UNREADABLE_ENTRY && entry.reason !== NO_COLLECTION_ID),
-  ).length;
+export function splitUnreadable(invalid: InvalidEntry[]) {
+  const isCollection = (entry: InvalidEntry) =>
+    entry.file === COLLECTIONS_FILE &&
+    (entry.reason === UNREADABLE_ENTRY || entry.reason === NO_COLLECTION_ID);
+  return {
+    saves: invalid.filter((entry) => !isCollection(entry)),
+    collections: invalid.filter(isCollection),
+  };
 }
 
 /**
@@ -76,7 +85,7 @@ export function buildImport(
     existing.tags,
     now,
   );
-  const summary = {
+  const summary: ImportSummary = {
     newCount: posts.length,
     duplicateCount: input.posts.length - posts.length,
     invalidCount: input.invalidCount,
