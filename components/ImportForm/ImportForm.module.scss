@@ -1,0 +1,140 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/breakpoints" as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.title {
+  @include text-style(title);
+
+  @include respond-to(desktop) {
+    @include text-style(display);
+  }
+}
+
+.files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    gap: $space-4;
+    justify-content: space-between;
+    padding: $space-4;
+    border: 1px solid $color-line;
+    border-radius: $radius-lg;
+    @include text-style(small);
+  }
+}
+
+// Long file names break instead of widening the page.
+.fileName {
+  overflow-wrap: anywhere;
+}
+
+.fileSize {
+  flex-shrink: 0;
+  color: $color-ink-muted;
+}
+
+// Steps above the upload on small screens, side by side from tablet up.
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+
+  @include respond-to(tablet) {
+    flex-direction: row;
+    align-items: stretch;
+
+    > * {
+      flex: 1 1 0;
+    }
+  }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-4;
+  border: 1px solid $color-line;
+  border-radius: $radius-lg;
+
+  ol {
+    margin: 0;
+    padding-left: $space-6;
+    @include text-style(small);
+    color: $color-ink-soft;
+  }
+}
+
+.sectionTitle {
+  @include text-style(body);
+  font-weight: $font-weight-semibold;
+}
+
+.drop {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  align-items: center;
+  justify-content: center;
+  padding: $space-8 $space-4;
+  border: 2px dashed $color-line-strong;
+  border-radius: $radius-lg;
+  text-align: center;
+}
+
+// The dashed border turns solid too, so dragging isn't shown by color alone.
+.dragging {
+  border-style: solid;
+  border-color: $color-accent-strong;
+  background: $color-accent-soft;
+}
+
+.icon {
+  color: $color-ink-muted;
+}
+
+// Never hidden with display: none, which would stop the announcement.
+.status {
+  @include text-style(small);
+}
+
+.hint {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+// Dragging files needs a mouse, so the hint only shows on desktop.
+.desktopOnly {
+  display: none;
+
+  @include respond-to(desktop) {
+    display: inline;
+  }
+}
+
+// Hidden but focusable: keyboard focus shows on the label next to it.
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+
+  &:focus-visible + label {
+    outline: 2px solid $color-accent-strong;
+    outline-offset: 2px;
+  }
+}
+
+.privacy {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
