@@ -1,6 +1,6 @@
 # Reelbox – Research & Decisions
 
-_Last updated: 2026-10-28 (decisions from #4, #5, #7, #25, #31 and #34; risks from #7, #24, #31 and #34)_
+_Last updated: 2026-11-02 (decisions from #4, #5, #7, #8, #25, #31 and #34; risks from #7, #8, #24, #31 and #34)_
 
 Reelbox is a portfolio web app that helps people who save lots of Instagram reels for inspiration organize their saves, using the official Instagram data export.
 
@@ -29,7 +29,15 @@ Reelbox is a portfolio web app that helps people who save lots of Instagram reel
 | Export parsing | Meta's `label_values` format, validated per entry with Zod. Broken entries are reported with a reason instead of failing the whole import; text is re-read as UTF-8 to repair Meta's encoding bug (#7) |
 | Links from the export | Post and profile links are rebuilt from the shortcode and username, never copied, so a manipulated file can't plant a foreign or `javascript:` link (#7) |
 | Saved dates | Only dates from Instagram's launch (6 Oct 2010) to one day in the future; a fake date would stretch the range that decides "no longer saved" (#7) |
-| Posts only in a collection | Reported as invalid: they have no saved date, which the "no longer saved" rule needs (#7) |
+| Posts only in a collection | Reported as invalid: they have no saved date, which the "no longer saved" rule needs (#7). Importing them with an unknown saved date is planned in #39 |
+| Import upload | The browser parses the export and sends only the saves and collections as gzip-compressed JSON (`application/gzip`), unpacked by the route itself so it can stop at 20 MB unpacked. A real export of about 2,200 saves is 2.05 MB as JSON and 0.72 MB compressed (#8) |
+| Import validation | The route checks the upload again with Zod, with limits on every list and text, and rebuilds every link; the browser's parsing is never trusted (#8) |
+| Import size limit | Vercel accepts requests up to 4.5 MB, about 13,000 saves compressed. The browser checks the size before sending, and a larger export gets a message asking for a shorter date range. The 20,000-save limit stays as the server's own bound (#8) |
+| Import transaction | One interactive Prisma transaction with a 30 s timeout; rows are inserted in batches of 1,000, one after another, since the transaction uses a single connection. A failure leaves nothing behind (#8) |
+| Collections as tags | Each Instagram collection becomes a tag, matched by name without case. Only new posts get collection tags, so a re-import never changes existing tags; a collection tag the user deleted or renamed may come back on new posts, accepted to avoid a schema change (#8) |
+| Parallel imports | The unique constraints stop the second of two imports at once, and it answers 409 "Another import is still running". Detecting this in `saveImport` itself is #38 (#8) |
+| Import tests | The import's logic is a pure function (`buildImport`) tested without a database; the thin database layer was checked by hand against the development branch (#8) |
+| Demo and import | Demo accounts can't import: their data is deleted after a day, so real data doesn't belong there. Blocked on the page and in the route (#8) |
 | Sessions | Stored without IP address or browser; expired sessions deleted on sign-in (#31) |
 | Privacy policy | Static pages; the durations they state come from the app's settings, checked by a test (#31) |
 | Stack | Next.js (one fullstack app) + TypeScript, Postgres on Neon, Zod, Vitest + Playwright, Vercel |
@@ -85,6 +93,8 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - Neon cold start on first demo visit → loading state. Waking after 5 minutes idle measured at about 1.5 s on the dev branch (#34)
 - Vercel freezes idle function instances, so a kept connection can be dead when the instance wakes, and the query fails with "Connection terminated unexpectedly" → keep-alive for now (#34); if it shows up in production, retry once on that error. Vercel's `attachDatabasePool` would fix it too, but ties the app to Vercel
 - Email codes landing in spam → demo account as fallback
+- Exports above about 13,000 saves don't fit in one request (Vercel's 4.5 MB limit) → the page explains it before sending and asks for an export with a shorter date range; splitting large uploads can come later if real users hit it (#8)
+- Imports are heavy database work: each one holds a connection for its whole transaction → fair-use limits per user are planned in #37 (#8)
 - Sign-in emails reach the Gmail inbox with SPF, DKIM and DMARC passing, but some security extensions (e.g. NordVPN Threat Protection) may still flag them → #24 found that Brevo adds an open-tracking image, a likely trigger (not confirmed). It can't be removed on the free plan, so tracking is set to anonymous and the privacy policy explains it (#31). Revisit with an email provider that allows turning tracking off → resolved by Gmail SMTP (#34), which adds no tracking
 - Shared sending domains carry other senders' reputation: on 2026-10-27 every sign-in email bounced with `550 12361222.brevosend.com listed in Spamhaus DBL`. Spamhaus had listed all of `brevosend.com` as a phishing domain (DBL code `127.0.1.4`), so every Brevo sender without their own domain was blocked. Brevo accepts the email before the bounce, so the app still showed "code sent" → switch to Gmail SMTP (#34); the demo login still works without email
 - Anyone can request sign-in codes for any address: the per-IP rate limit protects one inbox from one sender, but a coordinated attempt from many IPs could use up the Gmail quota (about 500 emails per day, shared by all projects on the account; going over blocks sending for up to a day) → per-email limit in #27
@@ -98,6 +108,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 - **Export is the legal input:** the JSON export contains `saved_posts.json` and `saved_collections.json`.
 - **Captions and hashtags are in the export** (verified in #4, contrary to earlier sources): this makes tag suggestions much better. The export's text encoding is broken and must be repaired before storing.
 - **Real export format (#7):** a list of labelled fields per post (`label_values`), with Owner, Hashtags and Brand partner as nested groups. About 7 MB per file for 2,200 saves, which is above Vercel's 4.5 MB request limit, so parsing happens in the browser.
+- **Import timing (#8):** on a preview deployment in `fra1`, a first import of 2,179 saves (55 collections as tags) took 2.3 s on the server, and re-importing the same export 1.4 s. The upload was 0.72 MB. The transaction's limit is 30 s, so there is room for exports several times larger.
 - **No auto-unsave:** bulk-unsave tools use browser automation (ToS risk).
 - **Neon over Supabase for the demo:** Supabase free projects pause after 1 week and need manual restore; Neon wakes on the next request.
 
