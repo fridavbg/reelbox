@@ -1,0 +1,69 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/breakpoints" as *;
+@use "../../styles/accessibility" as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+  padding: $space-2;
+  overflow-wrap: anywhere;
+  border: 1px solid $color-line;
+  border-radius: $radius-lg;
+
+  @include respond-to(desktop) {
+    padding: $space-2 + $space-1;
+  }
+}
+
+.kind {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  margin-bottom: $space-1;
+  @include text-style(caption);
+  color: $color-ink-muted;
+  background: $color-placeholder;
+  border-radius: $radius-sm;
+}
+
+.creator {
+  @include text-style(label);
+  color: $color-ink;
+}
+
+.saved {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  padding: 0 $space-2;
+  @include text-style(caption);
+  color: $color-accent-strong;
+  background: $color-accent-soft;
+  border-radius: $radius-pill;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: $touch-target;
+  @include text-style(caption);
+}
+
+.hidden {
+  @include visually-hidden;
+}
