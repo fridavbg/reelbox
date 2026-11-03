@@ -10,6 +10,12 @@
   font-family: inherit;
   cursor: pointer;
 
+  // While loading the button stays enabled, so keyboard focus isn't lost;
+  // the cursor shows it's busy instead.
+  &[aria-busy="true"] {
+    cursor: progress;
+  }
+
   &:disabled {
     background: $color-surface-alt;
     border-color: $color-surface-alt;
