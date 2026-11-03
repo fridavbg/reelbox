@@ -1,17 +1,40 @@
 /**
- * Writes a date the way the import summary shows it, e.g. "14 Dec 2016".
+ * Three-letter months, as in the wireframes. Intl's own short months differ
+ * between runtimes: recent ones write September as "Sept" in en-GB.
+ */
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/**
+ * Writes a date the way the wireframes show it, e.g. "14 Dec 2016".
  *
  * @param date - The date to write.
- * @param timeZone - An IANA time zone; the browser's own by default.
+ * @param timeZone - An IANA time zone; the runtime's own by default.
  * @returns The day, short month and year.
  */
 export function formatDay(date: Date, timeZone?: string) {
-  return new Intl.DateTimeFormat("en-GB", {
+  // Intl only works out the calendar day in the time zone; the words are ours.
+  const parts = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
-    month: "short",
+    month: "numeric",
     year: "numeric",
     timeZone,
-  }).format(date);
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value);
+  return `${part("day")} ${MONTHS[part("month") - 1]} ${part("year")}`;
 }
 
 /**
