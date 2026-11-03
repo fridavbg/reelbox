@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDay,
-  savesImportedText,
   tagsAddedText,
   unreadableCollectionsText,
   unreadableSavesText,
@@ -57,24 +56,5 @@ describe("unreadableCollectionsText", () => {
     [2, "2 collections couldn't be read, so they weren't added as tags."],
   ])("writes the line for %i", (count, text) => {
     expect(unreadableCollectionsText(count)).toBe(text);
-  });
-});
-
-describe("savesImportedText", () => {
-  it.each([
-    [
-      0,
-      "No saves yet. Import your Instagram export to see your saved reels and posts here.",
-    ],
-    [
-      1,
-      "1 save imported. Import a new export any time to add the latest ones.",
-    ],
-    [
-      2179,
-      "2179 saves imported. Import a new export any time to add the latest ones.",
-    ],
-  ])("writes the line for %i", (count, text) => {
-    expect(savesImportedText(count)).toBe(text);
   });
 });

@@ -25,7 +25,6 @@ const MONTHS = [
  * @returns The day, short month and year.
  */
 export function formatDay(date: Date, timeZone?: string) {
-  // Intl only works out the calendar day in the time zone; the words are ours.
   const parts = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "numeric",
@@ -71,18 +70,4 @@ export function unreadableCollectionsText(count: number) {
   return count === 1
     ? "1 collection couldn't be read, so it wasn't added as a tag."
     : `${count} collections couldn't be read, so they weren't added as tags.`;
-}
-
-/**
- * The line on the saves page about how many saves are in the library.
- *
- * @param count - How many saves the user has.
- * @returns The sentence, with "save" or "saves" to match the count.
- */
-export function savesImportedText(count: number) {
-  if (count === 0) {
-    return "No saves yet. Import your Instagram export to see your saved reels and posts here.";
-  }
-  const saves = count === 1 ? "1 save" : `${count} saves`;
-  return `${saves} imported. Import a new export any time to add the latest ones.`;
 }

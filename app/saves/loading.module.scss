@@ -1,0 +1,48 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/grid" as *;
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.note {
+  padding: $space-4;
+  @include text-style(small);
+  color: $color-accent-strong;
+  background: $color-accent-soft;
+  border-radius: $radius-md;
+}
+
+.grid {
+  @include card-grid;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.thumb {
+  aspect-ratio: 1;
+  background: $color-placeholder;
+  border-radius: $radius-sm;
+}
+
+.line,
+.shortLine {
+  height: $space-4;
+  background: $color-placeholder;
+  border-radius: $radius-pill;
+}
+
+.line {
+  width: 70%;
+}
+
+.shortLine {
+  width: 45%;
+}

@@ -2,6 +2,12 @@ import type { PostKind } from "@/generated/prisma/client";
 import { formatDay } from "@/lib/import/import-summary";
 
 /**
+ * Shown on demo cards instead of "Open on Instagram": the sample saves are
+ * invented, so their links would lead nowhere.
+ */
+export const DEMO_SAVE_NOTE = "Sample save, not on Instagram";
+
+/**
  * The word for a save's kind, shown where a thumbnail would be.
  *
  * @param kind - Reel or post.
