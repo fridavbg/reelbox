@@ -14,6 +14,15 @@ describe("formatDay", () => {
     );
   });
 
+  it.each([
+    ["2026-01-05", "5 Jan 2026"],
+    ["2026-06-05", "5 Jun 2026"],
+    ["2026-07-05", "5 Jul 2026"],
+    ["2026-09-30", "30 Sep 2026"],
+  ])("shortens every month to three letters (%s)", (day, expected) => {
+    expect(formatDay(new Date(`${day}T12:00:00Z`), "UTC")).toBe(expected);
+  });
+
   it("uses the given time zone", () => {
     // Late evening in UTC is already the next day in Stockholm.
     expect(
