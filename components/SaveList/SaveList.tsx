@@ -37,13 +37,17 @@ export function SaveList({ initialSaves, initialCursor, demo = false }: Props) {
   // Index of the first card added by the last "Load more".
   const [firstNew, setFirstNew] = useState<number | null>(null);
   const firstNewRef = useRef<HTMLElement>(null);
+  // Set while a page is loading. A ref changes at once, unlike state, so a
+  // quick second click can't load the same page again.
+  const loadingRef = useRef(false);
 
   useEffect(() => {
     if (firstNew !== null) firstNewRef.current?.focus();
   }, [firstNew]);
 
   async function loadMore() {
-    if (!cursor) return;
+    if (!cursor || loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     setFailed(false);
     try {
@@ -54,6 +58,7 @@ export function SaveList({ initialSaves, initialCursor, demo = false }: Props) {
     } catch {
       setFailed(true);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   }
