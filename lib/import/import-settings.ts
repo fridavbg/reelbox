@@ -30,3 +30,9 @@ export const MAX_TEXT_LENGTH = 500;
 
 /** Stays far below the largest number the `invalid_count` column can hold. */
 export const MAX_INVALID_COUNT = 1_000_000;
+
+/**
+ * The id of the "How to get your export" steps on the import page, so other
+ * pages can link straight to them: `/import#export-steps`.
+ */
+export const EXPORT_STEPS_ID = "export-steps";

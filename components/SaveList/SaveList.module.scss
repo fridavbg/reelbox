@@ -1,0 +1,21 @@
+@use "../../styles/variables" as *;
+@use "../../styles/grid" as *;
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+}
+
+.grid {
+  @include card-grid;
+
+  // Each card fills its cell, so cards in a row are equally tall.
+  > li {
+    display: flex;
+  }
+}
+
+.loadMore {
+  align-self: center;
+}

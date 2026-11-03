@@ -11,6 +11,7 @@ import {
   POSTS_FILE,
 } from "@/lib/export/export-settings";
 import { unchangedNote } from "@/lib/import/import-messages";
+import { EXPORT_STEPS_ID } from "@/lib/import/import-settings";
 import { runImport, type ImportResult } from "@/lib/import/run-import";
 import styles from "./ImportForm.module.scss";
 
@@ -129,7 +130,11 @@ export function ImportForm() {
       )}
 
       <div className={styles.columns}>
-        <section className={styles.steps} aria-labelledby={`${inputId}-steps`}>
+        <section
+          id={EXPORT_STEPS_ID}
+          className={styles.steps}
+          aria-labelledby={`${inputId}-steps`}
+        >
           <h2 id={`${inputId}-steps`} className={styles.sectionTitle}>
             How to get your export
           </h2>

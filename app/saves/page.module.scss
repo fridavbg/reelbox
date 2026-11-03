@@ -2,15 +2,30 @@
 @use "../../styles/typography" as *;
 @use "../../styles/breakpoints" as *;
 
+.headerLink {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  padding: 0 $space-2;
+  @include text-style(small);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.saves {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
 .intro {
   display: flex;
   flex-direction: column;
   gap: $space-2;
   align-items: flex-start;
-}
-
-.import {
-  margin-top: $space-4;
 }
 
 .title {
@@ -23,4 +38,50 @@
 
 .text {
   color: $color-ink-muted;
+}
+
+.count {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+// Centered in the space between header and footer.
+.empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: $space-4;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+// A small grid of empty cards, drawn with CSS.
+.illustration {
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  gap: $space-2;
+  padding: $space-2;
+  margin-bottom: $space-4;
+  background: $color-placeholder;
+  border-radius: $radius-lg;
+
+  span {
+    height: 40px;
+    background: $color-line;
+    border-radius: $radius-sm;
+  }
+}
+
+.emptyTitle {
+  @include text-style(title);
+}
+
+.help {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  @include text-style(small);
 }
