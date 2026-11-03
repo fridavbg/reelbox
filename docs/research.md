@@ -1,6 +1,6 @@
 # Reelbox – Research & Decisions
 
-_Last updated: 2026-11-02 (decisions from #4, #5, #7, #8, #25, #31 and #34; risks from #7, #8, #24, #31 and #34)_
+_Last updated: 2026-11-03 (decisions from #4, #5, #7, #8, #10, #25, #31 and #34; risks from #7, #8, #10, #24, #31 and #34)_
 
 Reelbox is a portfolio web app that helps people who save lots of Instagram reels for inspiration organize their saves, using the official Instagram data export.
 
@@ -38,6 +38,12 @@ Reelbox is a portfolio web app that helps people who save lots of Instagram reel
 | Parallel imports | The unique constraints stop the second of two imports at once, and it answers 409 "Another import is still running". Detecting this in `saveImport` itself is #38 (#8) |
 | Import tests | The import's logic is a pure function (`buildImport`) tested without a database; the thin database layer was checked by hand against the development branch (#8) |
 | Demo and import | Demo accounts can't import: their data is deleted after a day, so real data doesn't belong there. Blocked on the page and in the route (#8) |
+| Saves pagination | 24 saves per page, newest first, with **Load more**. A cursor (the last save's saved date and id) instead of skipping rows, so saves imported meanwhile don't repeat cards; the id decides between saves with the same date. Tested by paging through an in-memory library with tied dates (#10) |
+| Load more | A Server Action called from the grid appends the next page and moves focus to its first card. It checks the session and the cursor itself, like an API route; a bad cursor is an error, never the first page again (#10) |
+| Dates on cards | Formatted in the browser's time zone (`useSyncExternalStore`): the server renders UTC, the browser renders again with its own zone, so dates near midnight may change once while the page loads. Chosen over always-UTC (off by a day near midnight) and a time-zone cookie (more code) (#10) |
+| Date format | Months are the app's own three-letter names: recent `Intl` data writes September as "Sept" in `en-GB`, unlike the wireframes (#10) |
+| No thumbnails | The export has no images. Reading them from post pages is scraping; oEmbed needs a Meta app and review; embeds load Instagram's scripts on every card. Cards show the save's kind instead, and caption and creator in #41 (#10) |
+| Demo links | The demo's saves are invented, so their cards say "Sample save, not on Instagram" instead of linking to a post that doesn't exist (#10) |
 | Sessions | Stored without IP address or browser; expired sessions deleted on sign-in (#31) |
 | Privacy policy | Static pages; the durations they state come from the app's settings, checked by a test (#31) |
 | Stack | Next.js (one fullstack app) + TypeScript, Postgres on Neon, Zod, Vitest + Playwright, Vercel |
@@ -62,6 +68,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 
 - Search
 - Bulk tagging
+- Demo: try the import with a sample export (#42)
 
 ### v2.0 – Future possibilities
 
@@ -91,6 +98,7 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 
 - Export format differs from expectations or changes later → validate with Zod, clear error messages; the parser accepts unknown fields, but Meta's older format (`string_map_data`) isn't supported and is rejected with a clear message (#7)
 - Neon cold start on first demo visit → loading state. Waking after 5 minutes idle measured at about 1.5 s on the dev branch (#34)
+- In development, the first visit to a page right after its code changes can hang on the loading state while Next compiles it; a reload fixes it. Not seen with a production build (#10)
 - Vercel freezes idle function instances, so a kept connection can be dead when the instance wakes, and the query fails with "Connection terminated unexpectedly" → keep-alive for now (#34); if it shows up in production, retry once on that error. Vercel's `attachDatabasePool` would fix it too, but ties the app to Vercel
 - Email codes landing in spam → demo account as fallback
 - Exports above about 13,000 saves don't fit in one request (Vercel's 4.5 MB limit) → the page explains it before sending and asks for an export with a shorter date range; splitting large uploads can come later if real users hit it (#8)
