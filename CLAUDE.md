@@ -10,6 +10,7 @@ Web app for people who save lots of Instagram reels for inspiration: upload Inst
 ## Stack
 
 - Next.js (App Router) + TypeScript (strict), one fullstack app
+- Next.js 16: newer than most AI training data; check `node_modules/next/dist/docs/` for current APIs
 - Postgres on Neon; Zod for validation at every boundary
 - Sass: SCSS modules (`*.module.scss`), mobile-first, shared `styles/_variables.scss` (design tokens) + `styles/_breakpoints.scss` (`respond-to` mixin)
 - Vitest (unit) + Playwright (end-to-end); GitHub Actions CI
