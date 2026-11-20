@@ -6,6 +6,7 @@ import {
   MAX_HASHTAGS,
   MAX_IMPORT_POSTS,
   MAX_INVALID_COUNT,
+  MAX_TEXT_LENGTH,
 } from "./import-settings";
 
 const now = new Date("2026-10-28T12:00:00Z");
@@ -27,6 +28,15 @@ const upload = {
   posts: [post],
   collections: [{ externalId: "1790", name: "Fika", shortcodes: ["AbC123"] }],
   invalidCount: 2,
+  unreadableLinks: ["https://www.instagram.com/p/NoDate1/"],
+};
+
+/** What parseImportRequest returns for `upload`. */
+const parsed = {
+  posts: [post],
+  collections: upload.collections,
+  invalidCount: 2,
+  unreadableShortcodes: ["NoDate1"],
 };
 
 // What the server receives: the upload after JSON, so dates are strings.
@@ -37,7 +47,22 @@ const withPost = (changes: Record<string, unknown>) =>
 
 describe("parseImportRequest", () => {
   it("accepts what the browser's parser produced", () => {
-    expect(parseImportRequest(sent(upload), now)).toEqual(upload);
+    expect(parseImportRequest(sent(upload), now)).toEqual(parsed);
+  });
+
+  it("keeps the shortcodes of unreadable saves and ignores links that aren't posts", () => {
+    const result = parseImportRequest(
+      sent({
+        ...upload,
+        unreadableLinks: [
+          "https://www.instagram.com/reel/Reel1/?igsh=x",
+          "https://www.instagram.com/some.creator/",
+          "javascript:alert(1)",
+        ],
+      }),
+      now,
+    );
+    expect(result?.unreadableShortcodes).toEqual(["Reel1"]);
   });
 
   it("rebuilds links instead of trusting the ones sent", () => {
@@ -112,6 +137,24 @@ describe("parseImportRequest", () => {
       withPost({
         hashtags: Array.from({ length: MAX_HASHTAGS + 1 }, (_, i) => `t${i}`),
       }),
+    ],
+    [
+      "more unreadable links than saves it couldn't read",
+      sent({
+        ...upload,
+        unreadableLinks: Array.from(
+          { length: MAX_INVALID_COUNT + 1 },
+          (_, i) => `https://www.instagram.com/p/Code${i}/`,
+        ),
+      }),
+    ],
+    [
+      "an unreadable link that's too long",
+      sent({ ...upload, unreadableLinks: ["x".repeat(MAX_TEXT_LENGTH + 1)] }),
+    ],
+    [
+      "unreadable links that aren't a list",
+      sent({ ...upload, unreadableLinks: "x" }),
     ],
     ["something that isn't an upload", "hello"],
   ])("refuses %s", (_, value) => {

@@ -10,11 +10,16 @@ import type {
 } from "@/lib/export/parse-export";
 import { tagKey } from "@/lib/tags";
 
-/** What the browser sends after parsing the export. */
+/** What the browser sends after parsing the export, checked by the route. */
 export type ImportInput = {
   posts: ParsedPost[];
   collections: ParsedCollection[];
   invalidCount: number;
+  /**
+   * Posts the browser couldn't read but could find a link for. They may
+   * still be saved on Instagram, so they're never flagged as no longer saved.
+   */
+  unreadableShortcodes: string[];
 };
 
 /** The counts shown to the user after an import. */
