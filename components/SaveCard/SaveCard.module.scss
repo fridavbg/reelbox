@@ -112,9 +112,9 @@
 }
 
 // The badge above is already pinned; a second auto margin would split the
-// free space and lift the badge off the bottom.
-.badge + .link,
-.badge + .demoNote {
+// free space and lift the badge off the bottom. Demo saves are never
+// flagged, so the demo note needs no such rule.
+.badge + .link {
   margin-top: 0;
 }
 
