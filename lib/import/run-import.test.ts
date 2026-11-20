@@ -27,6 +27,7 @@ const summary = {
   duplicateCount: 0,
   invalidCount: 6,
   tagsAddedCount: 3,
+  noLongerSavedCount: 0,
 };
 const answer = (status: number, body: unknown) =>
   new Response(typeof body === "string" ? body : JSON.stringify(body), {
