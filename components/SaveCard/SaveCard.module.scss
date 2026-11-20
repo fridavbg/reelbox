@@ -66,12 +66,14 @@
 }
 
 // Neutral, not a warning: the save is still here. The words carry the
-// state; the icon and background only help.
+// state; the icon and background only help. Pinned to the bottom with the
+// link, so the rows above line up with cards that have no badge.
 .badge {
   display: flex;
   gap: $space-1;
   align-items: center;
   align-self: flex-start;
+  margin-top: auto;
   padding: 0 $space-2;
   @include text-style(caption);
   color: $color-ink;
@@ -107,6 +109,13 @@
   margin-top: auto;
   min-height: $touch-target;
   @include text-style(caption);
+}
+
+// The badge above is already pinned; a second auto margin would split the
+// free space and lift the badge off the bottom.
+.badge + .link,
+.badge + .demoNote {
+  margin-top: 0;
 }
 
 // As tall as the link it replaces, so demo cards have the same height.
