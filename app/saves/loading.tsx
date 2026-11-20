@@ -4,7 +4,8 @@ import styles from "./loading.module.scss";
 
 /**
  * Shown by Next while the saves page loads, e.g. while the database wakes
- * up after a quiet spell. Grey cards stand in for the grid.
+ * up after a quiet spell. Grey cards in the shape of a save card (kind,
+ * 3 caption lines, creator, date) stand in for the grid.
  *
  * @returns The loading page.
  */
@@ -18,9 +19,14 @@ export default function SavesLoading() {
         <ul className={styles.grid} aria-hidden="true">
           {Array.from({ length: 4 }, (_, i) => (
             <li key={i} className={styles.card}>
-              <span className={styles.thumb} />
-              <span className={styles.line} />
-              <span className={styles.shortLine} />
+              <span className={styles.kind} />
+              <span className={styles.captionArea}>
+                <span className={styles.line} />
+                <span className={styles.line} />
+                <span className={styles.shortLine} />
+              </span>
+              <span className={styles.name} />
+              <span className={styles.date} />
             </li>
           ))}
         </ul>
