@@ -1,6 +1,8 @@
+@use "sass:map";
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
 @use "../../styles/grid" as *;
+@use "../../styles/breakpoints" as *;
 
 .loading {
   display: flex;
@@ -20,29 +22,51 @@
   @include card-grid;
 }
 
+// Same frame, spacing and caption height as SaveCard, so the grid doesn't
+// jump when the saves arrive.
 .card {
   display: flex;
   flex-direction: column;
   gap: $space-2;
+  padding: $space-2;
+  border: 1px solid $color-line;
+  border-radius: $radius-lg;
+
+  @include respond-to(desktop) {
+    padding: $space-2 + $space-1;
+  }
 }
 
-.thumb {
-  aspect-ratio: 1;
-  background: $color-placeholder;
-  border-radius: $radius-sm;
-}
-
+.kind,
 .line,
-.shortLine {
+.shortLine,
+.name,
+.date {
+  display: block;
   height: $space-4;
   background: $color-placeholder;
   border-radius: $radius-pill;
 }
 
-.line {
-  width: 70%;
+.kind {
+  width: 30%;
+}
+
+.captionArea {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-height: 3 * map.get(map.get($text-styles, small), line-height);
 }
 
 .shortLine {
-  width: 45%;
+  width: 60%;
+}
+
+.name {
+  width: 55%;
+}
+
+.date {
+  width: 40%;
 }
