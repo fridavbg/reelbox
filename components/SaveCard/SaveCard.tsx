@@ -4,8 +4,10 @@ import {
   DEMO_SAVE_NOTE,
   kindText,
   openOnInstagramContext,
+  PROFILE_LINK_CONTEXT,
   savedOnText,
 } from "@/lib/saves/save-card-text";
+import { KindIcon } from "./KindIcon";
 import styles from "./SaveCard.module.scss";
 
 type Props = {
@@ -14,24 +16,51 @@ type Props = {
   timeZone?: string;
   /** Set on the card, which then takes focus from code (not from Tab). */
   ref?: Ref<HTMLElement>;
-  /** A demo save: its post is invented, so there's nothing to link to. */
+  /** A demo save: its post and creator are invented, so nothing is linked. */
   demo?: boolean;
 };
 
 /**
- * One save in the grid: its kind where a thumbnail would be (the export has
- * no images), the creator, the saved date, its tags and a link to the post.
- * Demo saves get a note instead of the link.
+ * One save in the grid. The export has no images, so the card shows the
+ * kind, the caption, the creator, the saved date, its tags and a link to
+ * the post. Demo saves get a note instead of the links.
+ *
+ * The creator comes first in the HTML, so the heading starts the card for
+ * screen readers; CSS shows the kind and caption above it.
  *
  * @param props - The save, the time zone for its saved date, a ref, and
  *   whether it's a demo save.
  * @returns The card.
  */
 export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
+  const username = `@${save.creatorUsername}`;
+  const profile =
+    !demo && save.creatorUrl ? (
+      <a
+        href={save.creatorUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.profileLink}
+      >
+        {username}
+        <span className={styles.hidden}>{PROFILE_LINK_CONTEXT}</span>
+        <span aria-hidden="true"> ↗</span>
+      </a>
+    ) : (
+      username
+    );
+
   return (
     <article ref={ref} tabIndex={ref ? -1 : undefined} className={styles.card}>
-      <div className={styles.kind}>{kindText(save.kind)}</div>
-      <h2 className={styles.creator}>@{save.creatorUsername}</h2>
+      <h2 className={styles.creator}>{save.creatorName ?? profile}</h2>
+      {save.creatorName && <p className={styles.username}>{profile}</p>}
+      <p className={styles.kind}>
+        <KindIcon kind={save.kind} className={styles.kindIcon} />
+        {kindText(save.kind)}
+      </p>
+      <div className={styles.captionArea}>
+        {save.caption && <p className={styles.caption}>{save.caption}</p>}
+      </div>
       <p className={styles.saved}>
         <time dateTime={save.savedAt.toISOString()}>
           {savedOnText(save.savedAt, timeZone)}

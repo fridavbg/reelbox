@@ -1,3 +1,4 @@
+@use "sass:map";
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
 @use "../../styles/breakpoints" as *;
@@ -19,21 +20,52 @@
   }
 }
 
+// The HTML starts with the creator, so the heading leads for screen
+// readers; on screen the kind and caption come first.
 .kind {
   display: flex;
+  order: -2;
+  gap: $space-1;
   align-items: center;
-  justify-content: center;
-  aspect-ratio: 1;
-  margin-bottom: $space-1;
   @include text-style(caption);
   color: $color-ink-muted;
-  background: $color-placeholder;
-  border-radius: $radius-sm;
+}
+
+.kindIcon {
+  flex-shrink: 0;
+}
+
+// Always 3 lines tall, even for a short or missing caption, so the
+// creator, date and tags sit at the same height in every card.
+.captionArea {
+  order: -1;
+  min-height: 3 * map.get(map.get($text-styles, small), line-height);
+}
+
+.caption {
+  // Cut after 3 lines with "…". The prefixed form is the one every
+  // current browser supports.
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  @include text-style(small);
+  color: $color-ink;
 }
 
 .creator {
   @include text-style(label);
   color: $color-ink;
+}
+
+.username {
+  @include text-style(caption);
+}
+
+.profileLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
 }
 
 .saved {
