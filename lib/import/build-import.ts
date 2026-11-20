@@ -28,11 +28,18 @@ export type ImportSummary = {
   duplicateCount: number;
   invalidCount: number;
   tagsAddedCount: number;
+  /** Posts this import flagged as no longer saved on Instagram. */
+  noLongerSavedCount: number;
 };
 
 /** What the user already has, read inside the import's transaction. */
 export type ExistingLibrary = {
-  shortcodes: string[];
+  posts: {
+    id: string;
+    shortcode: string;
+    savedAt: Date;
+    noLongerSavedAt: Date | null;
+  }[];
   tags: { id: string; name: string; nameKey: string }[];
   collections: { id: string; externalId: string; name: string }[];
 };
@@ -75,7 +82,11 @@ export function buildImport(
   if (input.posts.length === 0) {
     throw new Error("An import needs at least one post.");
   }
-  const posts = newPostRows(userId, input.posts, existing.shortcodes);
+  const posts = newPostRows(
+    userId,
+    input.posts,
+    existing.posts.map((post) => post.shortcode),
+  );
   const postId = new Map(posts.map((post) => [post.shortcode, post.id]));
   const { collections, collectionRenames, collectionId } = collectionRows(
     userId,
@@ -90,14 +101,17 @@ export function buildImport(
     existing.tags,
     now,
   );
+  const changes = libraryChanges(input, existing.posts);
   const summary: ImportSummary = {
     newCount: posts.length,
     duplicateCount: input.posts.length - posts.length,
     invalidCount: input.invalidCount,
     tagsAddedCount: tags.length,
+    noLongerSavedCount: changes.flagPostIds.length,
   };
 
   return {
+    ...changes,
     posts,
     collections,
     collectionRenames,
@@ -111,6 +125,60 @@ export function buildImport(
     import: importRow(userId, input.posts, summary, now),
     summary,
   };
+}
+
+/**
+ * The first and last saved time in an upload, both included in its range.
+ *
+ * @param posts - Every post in the upload, duplicates included.
+ * @returns The earliest and latest saved time.
+ */
+function savedRange(posts: ParsedPost[]) {
+  const times = posts.map((post) => post.savedAt.getTime());
+  return { earliest: Math.min(...times), latest: Math.max(...times) };
+}
+
+/**
+ * What an import changes on posts the user already has. A post is flagged
+ * as no longer saved only if it's missing from the upload, was saved inside
+ * the upload's range, and wasn't among the saves the browser couldn't read:
+ * an export can cover only part of the library, and an unreadable save may
+ * still be saved. A post that's in the upload loses its flag and takes the
+ * upload's saved date, in case it was saved again. Tags are never touched.
+ *
+ * @param input - The cleaned upload.
+ * @param library - The user's posts, read in the import's transaction.
+ * @returns Ids of posts to flag and to clear, and saved dates to update.
+ */
+function libraryChanges(input: ImportInput, library: ExistingLibrary["posts"]) {
+  // A tampered upload could list a post twice; the latest date wins.
+  const exported = new Map<string, Date>();
+  for (const post of input.posts) {
+    const seen = exported.get(post.shortcode);
+    if (!seen || post.savedAt > seen)
+      exported.set(post.shortcode, post.savedAt);
+  }
+  const unreadable = new Set(input.unreadableShortcodes);
+  const { earliest, latest } = savedRange(input.posts);
+
+  const flagPostIds: string[] = [];
+  const clearPostIds: string[] = [];
+  const savedAtUpdates: { id: string; savedAt: Date }[] = [];
+  for (const post of library) {
+    const savedAt = exported.get(post.shortcode);
+    if (savedAt) {
+      if (post.noLongerSavedAt) clearPostIds.push(post.id);
+      if (savedAt.getTime() !== post.savedAt.getTime()) {
+        savedAtUpdates.push({ id: post.id, savedAt });
+      }
+      continue;
+    }
+    // Already flagged posts keep the time they were first flagged.
+    if (post.noLongerSavedAt || unreadable.has(post.shortcode)) continue;
+    const time = post.savedAt.getTime();
+    if (time >= earliest && time <= latest) flagPostIds.push(post.id);
+  }
+  return { flagPostIds, clearPostIds, savedAtUpdates };
 }
 
 /**
@@ -295,13 +363,13 @@ function importRow(
   summary: { newCount: number; duplicateCount: number; invalidCount: number },
   now: Date,
 ) {
-  const savedDates = posts.map((post) => post.savedAt.getTime());
+  const { earliest, latest } = savedRange(posts);
   return {
     id: newId(),
     userId,
     importedAt: now,
-    earliestSavedAt: new Date(Math.min(...savedDates)),
-    latestSavedAt: new Date(Math.max(...savedDates)),
+    earliestSavedAt: new Date(earliest),
+    latestSavedAt: new Date(latest),
     newCount: summary.newCount,
     duplicateCount: summary.duplicateCount,
     invalidCount: summary.invalidCount,

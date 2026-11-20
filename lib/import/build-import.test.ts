@@ -40,7 +40,19 @@ const collection = (
   shortcodes: string[],
 ): ParsedCollection => ({ externalId, name, shortcodes });
 
-const empty: ExistingLibrary = { shortcodes: [], tags: [], collections: [] };
+const empty: ExistingLibrary = { posts: [], tags: [], collections: [] };
+
+/** A post already in the library; not flagged unless `noLongerSavedAt` is given. */
+const libraryPost = (
+  shortcode: string,
+  savedAt = "2026-10-01T00:00:00Z",
+  noLongerSavedAt: string | null = null,
+): ExistingLibrary["posts"][number] => ({
+  id: `id-${shortcode}`,
+  shortcode,
+  savedAt: new Date(savedAt),
+  noLongerSavedAt: noLongerSavedAt ? new Date(noLongerSavedAt) : null,
+});
 
 function build(
   input: Partial<ImportInput>,
@@ -95,7 +107,7 @@ describe("buildImport", () => {
   it("skips posts already in the library and counts them", () => {
     const result = build(
       { posts: [post("A"), post("B")] },
-      { shortcodes: ["A"] },
+      { posts: [libraryPost("A")] },
     );
     expect(result.posts.map((p) => p.shortcode)).toEqual(["B"]);
     expect(result.summary).toMatchObject({ newCount: 1, duplicateCount: 1 });
@@ -141,7 +153,7 @@ describe("buildImport", () => {
         posts: [post("A"), post("B")],
         collections: [collection("c1", "Recipes", ["A", "B"])],
       },
-      { shortcodes: ["A"] },
+      { posts: [libraryPost("A")] },
     );
     expect(result.posts.map((p) => p.shortcode)).toEqual(["B"]);
     expect(result.postTags).toHaveLength(1);
@@ -181,7 +193,7 @@ describe("buildImport", () => {
         posts: [post("A")],
         collections: [collection("c1", "Recipes", ["A"])],
       },
-      { shortcodes: ["A"] },
+      { posts: [libraryPost("A")] },
     );
     expect(result.tags).toEqual([]);
     expect(result.summary.tagsAddedCount).toBe(0);
@@ -241,7 +253,7 @@ describe("buildImport", () => {
         ],
         invalidCount: 2,
       },
-      { shortcodes: ["C"] },
+      { posts: [libraryPost("C")] },
     );
     expect(result.import).toMatchObject({
       userId,
@@ -252,6 +264,95 @@ describe("buildImport", () => {
       duplicateCount: 1,
       invalidCount: 2,
     });
+  });
+});
+
+describe("buildImport: no longer saved on Instagram", () => {
+  // The export's saves span 1 January to 1 June 2026.
+  const first = "2026-01-01T00:00:00Z";
+  const last = "2026-06-01T00:00:00Z";
+  const exported = [post("First", first), post("Last", last)];
+
+  /** Imports `exported` (plus `input`) into a library with `library`. */
+  const reimport = (
+    library: ExistingLibrary["posts"],
+    input: Partial<ImportInput> = {},
+  ) =>
+    build(
+      { ...input, posts: [...exported, ...(input.posts ?? [])] },
+      { posts: library },
+    );
+
+  it("flags a post missing from the export when it was saved inside its range", () => {
+    const result = reimport([libraryPost("Gone", "2026-03-01T00:00:00Z")]);
+    expect(result.flagPostIds).toEqual(["id-Gone"]);
+    expect(result.summary.noLongerSavedCount).toBe(1);
+  });
+
+  it("counts the export's first and last saved time as inside the range", () => {
+    const result = reimport([
+      libraryPost("GoneFirst", first),
+      libraryPost("GoneLast", last),
+    ]);
+    expect(result.flagPostIds).toEqual(["id-GoneFirst", "id-GoneLast"]);
+  });
+
+  it("leaves posts saved outside the range unchanged", () => {
+    const result = reimport([
+      libraryPost("Older", "2025-12-31T23:59:59Z"),
+      libraryPost("Newer", "2026-06-01T00:00:01Z"),
+    ]);
+    expect(result.flagPostIds).toEqual([]);
+    expect(result.summary.noLongerSavedCount).toBe(0);
+  });
+
+  it("never flags a post the browser couldn't read", () => {
+    const result = reimport([libraryPost("Broken", "2026-03-01T00:00:00Z")], {
+      unreadableShortcodes: ["Broken"],
+    });
+    expect(result.flagPostIds).toEqual([]);
+  });
+
+  it("keeps a post that's already flagged as it is", () => {
+    const result = reimport([
+      libraryPost("Gone", "2026-03-01T00:00:00Z", "2026-07-01T00:00:00Z"),
+    ]);
+    expect(result.flagPostIds).toEqual([]);
+    expect(result.clearPostIds).toEqual([]);
+    expect(result.summary.noLongerSavedCount).toBe(0);
+  });
+
+  it("clears the flag on a post that's in the export again", () => {
+    const result = reimport(
+      [libraryPost("Back", "2026-03-01T00:00:00Z", "2026-07-01T00:00:00Z")],
+      { posts: [post("Back", "2026-03-01T00:00:00Z")] },
+    );
+    expect(result.clearPostIds).toEqual(["id-Back"]);
+    expect(result.flagPostIds).toEqual([]);
+  });
+
+  it("gives a post saved again its new saved date", () => {
+    const result = reimport(
+      [libraryPost("Again", "2022-05-01T00:00:00Z", "2024-01-01T00:00:00Z")],
+      { posts: [post("Again", "2026-05-01T00:00:00Z")] },
+    );
+    expect(result.savedAtUpdates).toEqual([
+      { id: "id-Again", savedAt: new Date("2026-05-01T00:00:00Z") },
+    ]);
+    expect(result.clearPostIds).toEqual(["id-Again"]);
+  });
+
+  it("leaves saved dates that haven't changed", () => {
+    const result = reimport([libraryPost("First", first)]);
+    expect(result.savedAtUpdates).toEqual([]);
+    expect(result.flagPostIds).toEqual([]);
+  });
+
+  it("never flags or changes a post that's only new in this import", () => {
+    const result = reimport([]);
+    expect(result.flagPostIds).toEqual([]);
+    expect(result.clearPostIds).toEqual([]);
+    expect(result.savedAtUpdates).toEqual([]);
   });
 });
 

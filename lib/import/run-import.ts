@@ -31,6 +31,7 @@ const summarySchema = z.object({
   duplicateCount: count,
   invalidCount: count,
   tagsAddedCount: count,
+  noLongerSavedCount: count,
 }) satisfies z.ZodType<ImportSummary>;
 
 /**

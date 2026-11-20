@@ -28,7 +28,12 @@ export async function saveImport(
     async (tx) => {
       const posts = await tx.post.findMany({
         where: { userId },
-        select: { shortcode: true },
+        select: {
+          id: true,
+          shortcode: true,
+          savedAt: true,
+          noLongerSavedAt: true,
+        },
       });
       const tags = await tx.tag.findMany({
         where: { userId },
@@ -42,7 +47,7 @@ export async function saveImport(
       const rows = buildImport(
         userId,
         input,
-        { shortcodes: posts.map((post) => post.shortcode), tags, collections },
+        { posts, tags, collections },
         now,
       );
 

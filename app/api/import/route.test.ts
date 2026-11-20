@@ -45,6 +45,7 @@ const summary = {
   duplicateCount: 0,
   invalidCount: 0,
   tagsAddedCount: 0,
+  noLongerSavedCount: 0,
 };
 
 function request(body: BodyInit, contentType = "application/gzip"): Request {
