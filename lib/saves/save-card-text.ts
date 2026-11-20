@@ -21,8 +21,17 @@ export const PROFILE_LINK_CONTEXT = ", Instagram profile, opens in a new tab";
 export const CARD_CAPTION_LENGTH = 300;
 
 /**
- * A save's caption as its card shows it: on one line, and cut after the
- * last whole word within {@link CARD_CAPTION_LENGTH}, with "…".
+ * The earliest point a long caption is cut at a space. A space before it
+ * would throw away too much, e.g. "Recipe: " followed by a long link, so
+ * the caption is cut at the card length instead.
+ */
+const MIN_WORD_CUT = Math.floor(CARD_CAPTION_LENGTH * 0.8);
+
+/**
+ * A save's caption as its card shows it: on one line, and at most
+ * {@link CARD_CAPTION_LENGTH} characters, cut after the last whole word
+ * when there's one near the end, with "…". Characters are counted whole,
+ * so an emoji is never cut in half.
  *
  * @param caption - The caption from the export, or null.
  * @returns The card's caption, or null when there's nothing to show.
@@ -30,11 +39,13 @@ export const CARD_CAPTION_LENGTH = 300;
 export function cardCaption(caption: string | null) {
   const oneLine = caption?.replace(/\s+/g, " ").trim();
   if (!oneLine) return null;
-  if (oneLine.length <= CARD_CAPTION_LENGTH) return oneLine;
-  const cut = oneLine.slice(0, CARD_CAPTION_LENGTH + 1);
+  // Whole characters: a string's length counts an emoji as two.
+  const characters = Array.from(oneLine);
+  if (characters.length <= CARD_CAPTION_LENGTH) return oneLine;
+  const cut = characters.slice(0, CARD_CAPTION_LENGTH + 1);
   const lastSpace = cut.lastIndexOf(" ");
-  const end = lastSpace > 0 ? lastSpace : CARD_CAPTION_LENGTH;
-  return `${cut.slice(0, end)}…`;
+  const end = lastSpace >= MIN_WORD_CUT ? lastSpace : CARD_CAPTION_LENGTH;
+  return `${cut.slice(0, end).join("")}…`;
 }
 
 /**
