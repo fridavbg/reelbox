@@ -43,11 +43,20 @@ export async function saveImport(
         where: { userId },
         select: { id: true, externalId: true, name: true },
       });
+      const newest = await tx.import.aggregate({
+        where: { userId },
+        _max: { latestSavedAt: true },
+      });
 
       const rows = buildImport(
         userId,
         input,
-        { posts, tags, collections },
+        {
+          posts,
+          tags,
+          collections,
+          newestImportedSavedAt: newest._max.latestSavedAt,
+        },
         now,
       );
 
@@ -69,10 +78,12 @@ export async function saveImport(
 
       // Posts the user already had. The ids come from their own library, and
       // `userId` keeps every update to it anyway. Batched, since a first
-      // re-import can flag thousands of posts.
+      // re-import can flag thousands of posts. Only unflagged posts: if the
+      // same re-import runs twice at once, it adds no rows for the unique
+      // constraints to stop, and the second must keep the first flag time.
       await insertInBatches(rows.flagPostIds, (ids) =>
         tx.post.updateMany({
-          where: { id: { in: ids }, userId },
+          where: { id: { in: ids }, userId, noLongerSavedAt: null },
           data: { noLongerSavedAt: now },
         }),
       );

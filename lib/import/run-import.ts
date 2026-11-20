@@ -98,7 +98,7 @@ async function importFiles(
       posts,
       collections,
       invalidCount: unreadable.saves.length,
-      // These may still be saved, so the server never flags them.
+      // Still saved, only unreadable, so the server never flags them.
       unreadableLinks: unreadable.saves.flatMap((entry) => entry.url ?? []),
     }),
   );
