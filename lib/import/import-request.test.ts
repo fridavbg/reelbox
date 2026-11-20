@@ -50,10 +50,19 @@ describe("parseImportRequest", () => {
     expect(parseImportRequest(sent(upload), now)).toEqual(parsed);
   });
 
+  it("accepts an upload without unreadable links, from a page loaded before they existed", () => {
+    // JSON leaves out undefined fields, so the field isn't sent at all.
+    const older = { ...upload, unreadableLinks: undefined };
+    expect(parseImportRequest(sent(older), now)?.unreadableShortcodes).toEqual(
+      [],
+    );
+  });
+
   it("keeps the shortcodes of unreadable saves and ignores links that aren't posts", () => {
     const result = parseImportRequest(
       sent({
         ...upload,
+        invalidCount: 3,
         unreadableLinks: [
           "https://www.instagram.com/reel/Reel1/?igsh=x",
           "https://www.instagram.com/some.creator/",
@@ -142,8 +151,9 @@ describe("parseImportRequest", () => {
       "more unreadable links than saves it couldn't read",
       sent({
         ...upload,
+        invalidCount: 2,
         unreadableLinks: Array.from(
-          { length: MAX_INVALID_COUNT + 1 },
+          { length: 3 },
           (_, i) => `https://www.instagram.com/p/Code${i}/`,
         ),
       }),
