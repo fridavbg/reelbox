@@ -81,6 +81,11 @@ describe("SaveCard", () => {
     expect(text(html)).toContain("@creator_one");
   });
 
+  it("shows a clapperboard for reels and an image for posts", () => {
+    expect(render({ kind: "REEL" })).toContain("lucide-clapperboard");
+    expect(render({ kind: "POST" })).toContain("lucide-image");
+  });
+
   it("hides the kind icon from screen readers", () => {
     expect(render()).toMatch(/<svg[^>]*aria-hidden="true"/);
     expect(text(render())).toContain("Reel");

@@ -1,3 +1,4 @@
+import { Clapperboard, ImageIcon } from "lucide-react";
 import type { Ref } from "react";
 import type { SaveListItem } from "@/lib/saves/list-saves";
 import {
@@ -7,8 +8,10 @@ import {
   PROFILE_LINK_CONTEXT,
   savedOnText,
 } from "@/lib/saves/save-card-text";
-import { KindIcon } from "./KindIcon";
 import styles from "./SaveCard.module.scss";
+
+/** The icon next to the kind's word; decorative, the word says the kind. */
+const kindIcons = { REEL: Clapperboard, POST: ImageIcon };
 
 type Props = {
   save: SaveListItem;
@@ -33,6 +36,7 @@ type Props = {
  * @returns The card.
  */
 export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
+  const KindIcon = kindIcons[save.kind];
   const username = `@${save.creatorUsername}`;
   const profile =
     !demo && save.creatorUrl ? (
@@ -55,7 +59,7 @@ export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
       <h2 className={styles.creator}>{save.creatorName ?? profile}</h2>
       {save.creatorName && <p className={styles.username}>{profile}</p>}
       <p className={styles.kind}>
-        <KindIcon kind={save.kind} className={styles.kindIcon} />
+        <KindIcon size={16} aria-hidden="true" className={styles.kindIcon} />
         {kindText(save.kind)}
       </p>
       <div className={styles.captionArea}>
