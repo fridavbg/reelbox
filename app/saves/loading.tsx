@@ -3,9 +3,24 @@ import { SAVES_LOADING } from "@/lib/saves/saves-text";
 import styles from "./loading.module.scss";
 
 /**
+ * One row of a grey card: a grey bar in a row as tall as the card's own.
+ *
+ * @param props - The class that sets the row's height and bar width.
+ * @returns The row.
+ */
+function SkeletonRow({ className }: { className: string }) {
+  return (
+    <span className={`${styles.row} ${className}`}>
+      <span className={styles.bar} />
+    </span>
+  );
+}
+
+/**
  * Shown by Next while the saves page loads, e.g. while the database wakes
- * up after a quiet spell. Grey cards in the shape of a save card (kind,
- * 3 caption lines, creator, date) stand in for the grid.
+ * up after a quiet spell. Grey cards with the same rows as a save card
+ * (kind, 3 caption lines, name, username, date, link) stand in for the
+ * grid.
  *
  * @returns The loading page.
  */
@@ -19,14 +34,16 @@ export default function SavesLoading() {
         <ul className={styles.grid} aria-hidden="true">
           {Array.from({ length: 4 }, (_, i) => (
             <li key={i} className={styles.card}>
-              <span className={styles.kind} />
+              <SkeletonRow className={styles.kind} />
               <span className={styles.captionArea}>
-                <span className={styles.line} />
-                <span className={styles.line} />
-                <span className={styles.shortLine} />
+                {Array.from({ length: 3 }, (_, line) => (
+                  <SkeletonRow key={line} className={styles.captionLine} />
+                ))}
               </span>
-              <span className={styles.name} />
-              <span className={styles.date} />
+              <SkeletonRow className={styles.name} />
+              <SkeletonRow className={styles.username} />
+              <SkeletonRow className={styles.date} />
+              <SkeletonRow className={styles.link} />
             </li>
           ))}
         </ul>

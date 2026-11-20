@@ -1,23 +1,12 @@
-@use "sass:map";
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
-@use "../../styles/breakpoints" as *;
 @use "../../styles/accessibility" as *;
+@use "../../styles/save-card" as *;
 
 .card {
-  display: flex;
+  @include save-card-frame;
   flex: 1;
-  flex-direction: column;
-  gap: $space-1;
-  min-width: 0;
-  padding: $space-2;
   overflow-wrap: anywhere;
-  border: 1px solid $color-line;
-  border-radius: $radius-lg;
-
-  @include respond-to(desktop) {
-    padding: $space-2 + $space-1;
-  }
 }
 
 // The HTML starts with the creator, so the heading leads for screen
@@ -35,11 +24,9 @@
   flex-shrink: 0;
 }
 
-// Always 3 lines tall, even for a short or missing caption, so the
-// creator, date and tags sit at the same height in every card.
 .captionArea {
   order: -1;
-  min-height: 3 * map.get(map.get($text-styles, small), line-height);
+  min-height: $save-card-caption-height;
 }
 
 .caption {
@@ -58,7 +45,12 @@
   color: $color-ink;
 }
 
+// As tall as the profile link even when it's plain text (demo), so every
+// card's rows line up with the loading skeleton.
 .username {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
   @include text-style(caption);
 }
 
@@ -99,8 +91,12 @@
   @include text-style(caption);
 }
 
+// As tall as the link it replaces, so demo cards have the same height.
 .demoNote {
+  display: flex;
+  align-items: center;
   margin-top: auto;
+  min-height: $touch-target;
   @include text-style(caption);
   color: $color-ink-muted;
 }
