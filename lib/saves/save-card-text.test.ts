@@ -1,9 +1,48 @@
 import { describe, expect, it } from "vitest";
 import {
+  CARD_CAPTION_LENGTH,
+  cardCaption,
   kindText,
   openOnInstagramContext,
   savedOnText,
 } from "./save-card-text";
+
+describe("cardCaption", () => {
+  it("keeps a short caption as it is", () => {
+    expect(cardCaption("Crispy chickpea traybake")).toBe(
+      "Crispy chickpea traybake",
+    );
+  });
+
+  it("has no caption when there is none or it's only spaces", () => {
+    expect(cardCaption(null)).toBeNull();
+    expect(cardCaption("")).toBeNull();
+    expect(cardCaption("  \n\n ")).toBeNull();
+  });
+
+  it("puts line breaks and repeated spaces together as one space", () => {
+    expect(cardCaption("  Step one\n\nStep  two\t#fika \n")).toBe(
+      "Step one Step two #fika",
+    );
+  });
+
+  it("keeps a caption of exactly the card length", () => {
+    const caption = "a".repeat(CARD_CAPTION_LENGTH);
+    expect(cardCaption(caption)).toBe(caption);
+  });
+
+  it("cuts a long caption after the last whole word and adds …", () => {
+    const words = "word ".repeat(100).trim(); // 499 characters
+    const short = cardCaption(words);
+    expect(short).toMatch(/^(word )+word…$/);
+    expect(short!.length).toBeLessThanOrEqual(CARD_CAPTION_LENGTH + 1);
+  });
+
+  it("cuts a long caption without spaces at the card length", () => {
+    const caption = "a".repeat(CARD_CAPTION_LENGTH + 50);
+    expect(cardCaption(caption)).toBe(`${"a".repeat(CARD_CAPTION_LENGTH)}…`);
+  });
+});
 
 describe("kindText", () => {
   it("names reels and posts", () => {

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { cardCaption } from "./save-card-text";
 import {
   afterCursor,
   SAVES_PAGE_SIZE,
@@ -8,7 +9,7 @@ import {
 
 /**
  * One page of a user's saves, newest first, with each save's tags in
- * alphabetical order.
+ * alphabetical order and its caption shortened for the card.
  *
  * @param userId - The signed-in user; only their saves are read.
  * @param cursor - The last save already shown, or undefined for the first page.
@@ -23,7 +24,10 @@ export async function listSaves(userId: string, cursor?: SavesCursor) {
       id: true,
       url: true,
       kind: true,
+      caption: true,
       creatorUsername: true,
+      creatorName: true,
+      creatorUrl: true,
       savedAt: true,
       tags: {
         select: { tag: { select: { name: true } } },
@@ -33,8 +37,9 @@ export async function listSaves(userId: string, cursor?: SavesCursor) {
   });
   const page = toPage(rows, SAVES_PAGE_SIZE);
   return {
-    saves: page.saves.map(({ tags, ...save }) => ({
+    saves: page.saves.map(({ tags, caption, ...save }) => ({
       ...save,
+      caption: cardCaption(caption),
       tags: tags.map(({ tag }) => tag.name),
     })),
     nextCursor: page.nextCursor,
