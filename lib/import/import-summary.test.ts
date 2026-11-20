@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatDay,
+  noLongerSavedText,
   tagsAddedText,
   unreadableCollectionsText,
   unreadableSavesText,
@@ -36,6 +37,22 @@ describe("unreadableSavesText", () => {
     [52, "Why couldn't 52 saves be read?"],
   ])("asks about %i", (count, text) => {
     expect(unreadableSavesText(count)).toBe(text);
+  });
+});
+
+describe("noLongerSavedText", () => {
+  it.each([
+    [0, undefined],
+    [
+      1,
+      "1 save is no longer saved on Instagram. It stays here, with its tags.",
+    ],
+    [
+      12,
+      "12 saves are no longer saved on Instagram. They stay here, with their tags.",
+    ],
+  ])("describes %i saves no longer saved", (count, text) => {
+    expect(noLongerSavedText(count)).toBe(text);
   });
 });
 
