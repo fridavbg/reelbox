@@ -13,6 +13,7 @@ const save: SaveListItem = {
   creatorName: "Creator One",
   creatorUrl: "https://www.instagram.com/creator_one/",
   savedAt: new Date("2026-09-30T12:00:00Z"),
+  noLongerSavedAt: null,
   tags: [],
 };
 
@@ -38,6 +39,16 @@ const profileLink = (html: string) =>
   )?.[0];
 
 describe("SaveCard", () => {
+  it("says when a save is no longer saved on Instagram, in words and not only with an icon", () => {
+    const html = render({ noLongerSavedAt: new Date("2026-11-01T12:00:00Z") });
+    expect(text(html)).toContain("No longer saved on Instagram");
+    expect(html).toContain("lucide-bookmark-x");
+  });
+
+  it("has no badge while the save is still saved", () => {
+    expect(text(render())).not.toContain("No longer saved");
+  });
+
   it("shows the caption", () => {
     expect(render()).toContain("Crispy chickpea traybake");
   });

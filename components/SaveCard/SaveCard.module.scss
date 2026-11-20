@@ -65,6 +65,24 @@
   color: $color-ink-muted;
 }
 
+// Neutral, not a warning: the save is still here. The words carry the
+// state; the icon and background only help.
+.badge {
+  display: flex;
+  gap: $space-1;
+  align-items: center;
+  align-self: flex-start;
+  padding: 0 $space-2;
+  @include text-style(caption);
+  color: $color-ink;
+  background: $color-badge;
+  border-radius: $radius-pill;
+}
+
+.badgeIcon {
+  flex-shrink: 0;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

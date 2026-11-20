@@ -59,6 +59,12 @@ export function kindText(kind: PostKind) {
 }
 
 /**
+ * The badge on a save that a later import no longer found on Instagram.
+ * Words, not only an icon, so the state never depends on seeing it.
+ */
+export const NO_LONGER_SAVED = "No longer saved on Instagram";
+
+/**
  * The saved date on a card, e.g. "Saved 30 Sep 2026".
  *
  * @param savedAt - When the post was saved on Instagram.
