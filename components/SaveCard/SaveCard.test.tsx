@@ -63,10 +63,16 @@ describe("SaveCard", () => {
     expect(text(link)).toBe(`@creator_one${PROFILE_LINK_CONTEXT} ↗`);
   });
 
-  it("uses the @username link as its heading when there's no display name", () => {
-    const html = render({ creatorName: null });
-    expect(profileLink(heading(html)!)).toBeDefined();
-    expect(html.match(/@creator_one/g)).toHaveLength(2); // the link and "Open on Instagram"
+  // Every card has the same rows, so the heading is plain text and the
+  // profile link keeps its own row below it.
+  it.each([
+    ["no display name", null],
+    ["an empty display name", ""],
+  ])("uses @username as its heading when there's %s", (_, creatorName) => {
+    const html = render({ creatorName });
+    expect(text(heading(html)!)).toBe("@creator_one");
+    expect(profileLink(heading(html)!)).toBeUndefined();
+    expect(profileLink(html)).toBeDefined();
   });
 
   it("shows @username as plain text in the demo", () => {

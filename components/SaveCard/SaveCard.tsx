@@ -29,7 +29,8 @@ type Props = {
  * the post. Demo saves get a note instead of the links.
  *
  * The creator comes first in the HTML, so the heading starts the card for
- * screen readers; CSS shows the kind and caption above it.
+ * screen readers; CSS shows the kind and caption above it. The heading is
+ * the display name, or the username when there's none.
  *
  * @param props - The save, the time zone for its saved date, a ref, and
  *   whether it's a demo save.
@@ -56,8 +57,10 @@ export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
 
   return (
     <article ref={ref} tabIndex={ref ? -1 : undefined} className={styles.card}>
-      <h2 className={styles.creator}>{save.creatorName ?? profile}</h2>
-      {save.creatorName && <p className={styles.username}>{profile}</p>}
+      {/* `||`, not `??`: an empty name counts as none. The username row is
+          always there, so every card has the same rows. */}
+      <h2 className={styles.creator}>{save.creatorName || username}</h2>
+      <p className={styles.username}>{profile}</p>
       <p className={styles.kind}>
         <KindIcon size={16} aria-hidden="true" className={styles.kindIcon} />
         {kindText(save.kind)}
