@@ -8,6 +8,12 @@ import { formatDay } from "@/lib/import/import-summary";
 export const DEMO_SAVE_NOTE = "Sample save, not on Instagram";
 
 /**
+ * Hidden text after "@username" in the link to a creator's profile, so the
+ * link says where it goes and that it opens a new tab.
+ */
+export const PROFILE_LINK_CONTEXT = ", Instagram profile, opens in a new tab";
+
+/**
  * The most characters of a caption a card gets. The card shows 3 lines;
  * this keeps the rest of a long caption out of the page, so screen readers
  * don't read all of it on every card.
