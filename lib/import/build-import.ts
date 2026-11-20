@@ -16,8 +16,9 @@ export type ImportInput = {
   collections: ParsedCollection[];
   invalidCount: number;
   /**
-   * Posts the browser couldn't read but could find a link for. They may
-   * still be saved on Instagram, so they're never flagged as no longer saved.
+   * Posts the browser couldn't read but could find a link for. Their entry
+   * shows they're still saved on Instagram, so they're never flagged as no
+   * longer saved, and an earlier flag is cleared.
    */
   unreadableShortcodes: string[];
 };
@@ -42,6 +43,8 @@ export type ExistingLibrary = {
   }[];
   tags: { id: string; name: string; nameKey: string }[];
   collections: { id: string; externalId: string; name: string }[];
+  /** The newest saved date of any earlier import, or null before the first. */
+  newestImportedSavedAt: Date | null;
 };
 
 /**
@@ -101,7 +104,7 @@ export function buildImport(
     existing.tags,
     now,
   );
-  const changes = libraryChanges(input, existing.posts);
+  const changes = libraryChanges(input, existing);
   const summary: ImportSummary = {
     newCount: posts.length,
     duplicateCount: input.posts.length - posts.length,
@@ -142,21 +145,27 @@ function savedRange(posts: ParsedPost[]) {
  * What an import changes on posts the user already has. A post is flagged
  * as no longer saved only if it's missing from the upload, was saved inside
  * the upload's range, and wasn't among the saves the browser couldn't read:
- * an export can cover only part of the library, and an unreadable save may
- * still be saved. A post that's in the upload loses its flag and takes the
- * upload's saved date, in case it was saved again. Tags are never touched.
+ * an export can cover only part of the library, and an unreadable entry
+ * still means the post is saved. A post that's in the upload, readable or
+ * not, loses its flag; a readable one also takes the upload's saved date, in
+ * case it was saved again. Tags are never touched.
+ *
+ * An export whose newest save is older than an earlier import's is an older
+ * export, e.g. a ZIP picked by mistake: it says nothing about what's saved
+ * now, so it changes no existing posts.
  *
  * @param input - The cleaned upload.
- * @param library - The user's posts, read in the import's transaction.
+ * @param existing - The user's library, read in the import's transaction.
  * @returns Ids of posts to flag and to clear, and saved dates to update.
  */
-function libraryChanges(input: ImportInput, library: ExistingLibrary["posts"]) {
-  // A tampered upload could list a post twice; the latest date wins.
+function libraryChanges(input: ImportInput, existing: ExistingLibrary) {
+  // A tampered upload could list a post twice; the first date wins, as in
+  // newPostRows, so both agree on it.
   const exported = new Map<string, Date>();
   for (const post of input.posts) {
-    const seen = exported.get(post.shortcode);
-    if (!seen || post.savedAt > seen)
+    if (!exported.has(post.shortcode)) {
       exported.set(post.shortcode, post.savedAt);
+    }
   }
   const unreadable = new Set(input.unreadableShortcodes);
   const { earliest, latest } = savedRange(input.posts);
@@ -164,7 +173,11 @@ function libraryChanges(input: ImportInput, library: ExistingLibrary["posts"]) {
   const flagPostIds: string[] = [];
   const clearPostIds: string[] = [];
   const savedAtUpdates: { id: string; savedAt: Date }[] = [];
-  for (const post of library) {
+  const newest = existing.newestImportedSavedAt;
+  if (newest && latest < newest.getTime()) {
+    return { flagPostIds, clearPostIds, savedAtUpdates };
+  }
+  for (const post of existing.posts) {
     const savedAt = exported.get(post.shortcode);
     if (savedAt) {
       if (post.noLongerSavedAt) clearPostIds.push(post.id);
@@ -173,8 +186,14 @@ function libraryChanges(input: ImportInput, library: ExistingLibrary["posts"]) {
       }
       continue;
     }
+    // An unreadable entry still proves the post is saved; only its date is
+    // missing, so the saved date stays as it is.
+    if (unreadable.has(post.shortcode)) {
+      if (post.noLongerSavedAt) clearPostIds.push(post.id);
+      continue;
+    }
     // Already flagged posts keep the time they were first flagged.
-    if (post.noLongerSavedAt || unreadable.has(post.shortcode)) continue;
+    if (post.noLongerSavedAt) continue;
     const time = post.savedAt.getTime();
     if (time >= earliest && time <= latest) flagPostIds.push(post.id);
   }

@@ -40,7 +40,12 @@ const collection = (
   shortcodes: string[],
 ): ParsedCollection => ({ externalId, name, shortcodes });
 
-const empty: ExistingLibrary = { posts: [], tags: [], collections: [] };
+const empty: ExistingLibrary = {
+  posts: [],
+  tags: [],
+  collections: [],
+  newestImportedSavedAt: null,
+};
 
 /** A post already in the library; not flagged unless `noLongerSavedAt` is given. */
 const libraryPost = (
@@ -273,14 +278,23 @@ describe("buildImport: no longer saved on Instagram", () => {
   const last = "2026-06-01T00:00:00Z";
   const exported = [post("First", first), post("Last", last)];
 
-  /** Imports `exported` (plus `input`) into a library with `library`. */
+  /**
+   * Imports `exported` (plus `input`) into a library with `library`, after
+   * earlier imports whose newest save was `newestImportedSavedAt`.
+   */
   const reimport = (
     library: ExistingLibrary["posts"],
     input: Partial<ImportInput> = {},
+    newestImportedSavedAt: string | null = null,
   ) =>
     build(
       { ...input, posts: [...exported, ...(input.posts ?? [])] },
-      { posts: library },
+      {
+        posts: library,
+        newestImportedSavedAt: newestImportedSavedAt
+          ? new Date(newestImportedSavedAt)
+          : null,
+      },
     );
 
   it("flags a post missing from the export when it was saved inside its range", () => {
@@ -311,6 +325,26 @@ describe("buildImport: no longer saved on Instagram", () => {
       unreadableShortcodes: ["Broken"],
     });
     expect(result.flagPostIds).toEqual([]);
+  });
+
+  it("clears the flag on a post that's back as a save the browser couldn't read", () => {
+    const result = reimport(
+      [libraryPost("Broken", "2026-03-01T00:00:00Z", "2026-07-01T00:00:00Z")],
+      { unreadableShortcodes: ["Broken"] },
+    );
+    expect(result.clearPostIds).toEqual(["id-Broken"]);
+  });
+
+  it("uses a post's first saved date when the upload lists it twice, like new posts do", () => {
+    const result = reimport([libraryPost("Twice", "2022-05-01T00:00:00Z")], {
+      posts: [
+        post("Twice", "2026-02-01T00:00:00Z"),
+        post("Twice", "2026-05-01T00:00:00Z"),
+      ],
+    });
+    expect(result.savedAtUpdates).toEqual([
+      { id: "id-Twice", savedAt: new Date("2026-02-01T00:00:00Z") },
+    ]);
   });
 
   it("keeps a post that's already flagged as it is", () => {
@@ -346,6 +380,41 @@ describe("buildImport: no longer saved on Instagram", () => {
     const result = reimport([libraryPost("First", first)]);
     expect(result.savedAtUpdates).toEqual([]);
     expect(result.flagPostIds).toEqual([]);
+  });
+
+  it("changes nothing on existing posts when the export is older than an earlier import", () => {
+    const result = reimport(
+      [
+        libraryPost("Gone", "2026-03-01T00:00:00Z"),
+        libraryPost("Back", "2026-03-01T00:00:00Z", "2026-07-01T00:00:00Z"),
+        libraryPost("Again", "2026-09-01T00:00:00Z"),
+      ],
+      {
+        posts: [
+          post("Back", "2026-03-01T00:00:00Z"),
+          post("Again", "2026-02-01T00:00:00Z"),
+        ],
+      },
+      "2026-09-01T00:00:00Z",
+    );
+    expect(result.flagPostIds).toEqual([]);
+    expect(result.clearPostIds).toEqual([]);
+    expect(result.savedAtUpdates).toEqual([]);
+    expect(result.summary.noLongerSavedCount).toBe(0);
+  });
+
+  it("still adds the new posts of an older export", () => {
+    const result = reimport([], {}, "2026-09-01T00:00:00Z");
+    expect(result.posts.map((row) => row.shortcode)).toEqual(["First", "Last"]);
+  });
+
+  it("treats an export as current when its newest save is the newest imported one", () => {
+    const result = reimport(
+      [libraryPost("Gone", "2026-03-01T00:00:00Z")],
+      {},
+      last,
+    );
+    expect(result.flagPostIds).toEqual(["id-Gone"]);
   });
 
   it("never flags or changes a post that's only new in this import", () => {
