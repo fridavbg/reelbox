@@ -47,6 +47,20 @@ export function unreadableSavesText(count: number) {
 }
 
 /**
+ * The summary line about saves this import flagged as no longer saved on
+ * Instagram. It says they stay, so nobody thinks they were deleted.
+ *
+ * @param count - How many saves the import flagged.
+ * @returns The sentence, or undefined when none were flagged.
+ */
+export function noLongerSavedText(count: number) {
+  if (count === 0) return undefined;
+  return count === 1
+    ? "1 save is no longer saved on Instagram. It stays here, with its tags."
+    : `${count} saves are no longer saved on Instagram. They stay here, with their tags.`;
+}
+
+/**
  * The summary line about collections that became tags.
  *
  * @param count - How many tags the import created.

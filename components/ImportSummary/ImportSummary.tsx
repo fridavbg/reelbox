@@ -6,6 +6,7 @@ import type { InvalidEntry } from "@/lib/export/parse-export";
 import type { ImportSummary as Summary } from "@/lib/import/build-import";
 import {
   formatDay,
+  noLongerSavedText,
   tagsAddedText,
   unreadableCollectionsText,
   unreadableSavesText,
@@ -42,6 +43,7 @@ export function ImportSummary({
   onImportMore,
   ref,
 }: Props) {
+  const noLongerSaved = noLongerSavedText(summary.noLongerSavedCount);
   const tagsAdded = tagsAddedText(summary.tagsAddedCount);
   const collectionsMissing = unreadableCollectionsText(
     unreadableCollections.length,
@@ -88,6 +90,7 @@ export function ImportSummary({
           </ul>
         </details>
       )}
+      {noLongerSaved && <p className={styles.note}>{noLongerSaved}</p>}
       {tagsAdded && <p className={styles.note}>{tagsAdded}</p>}
       {collectionsMissing && (
         <p className={styles.note}>{collectionsMissing}</p>

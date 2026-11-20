@@ -66,6 +66,27 @@ export async function saveImport(
       await insertInBatches(rows.postCollections, (data) =>
         tx.postCollection.createMany({ data }),
       );
+
+      // Posts the user already had. The ids come from their own library, and
+      // `userId` keeps every update to it anyway. Batched, since a first
+      // re-import can flag thousands of posts.
+      await insertInBatches(rows.flagPostIds, (ids) =>
+        tx.post.updateMany({
+          where: { id: { in: ids }, userId },
+          data: { noLongerSavedAt: now },
+        }),
+      );
+      await insertInBatches(rows.clearPostIds, (ids) =>
+        tx.post.updateMany({
+          where: { id: { in: ids }, userId },
+          data: { noLongerSavedAt: null },
+        }),
+      );
+      // Usually a handful: only posts saved again since the last import.
+      for (const { id, savedAt } of rows.savedAtUpdates) {
+        await tx.post.update({ where: { id, userId }, data: { savedAt } });
+      }
+
       await tx.import.create({ data: rows.import });
 
       return rows.summary;
