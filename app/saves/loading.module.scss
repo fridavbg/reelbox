@@ -1,8 +1,7 @@
-@use "sass:map";
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
 @use "../../styles/grid" as *;
-@use "../../styles/breakpoints" as *;
+@use "../../styles/save-card" as *;
 
 .loading {
   display: flex;
@@ -22,51 +21,73 @@
   @include card-grid;
 }
 
-// Same frame, spacing and caption height as SaveCard, so the grid doesn't
-// jump when the saves arrive.
+// Same frame as SaveCard, and one row per row of a card (without tags),
+// each as tall as the real one, so the grid doesn't jump when the saves
+// arrive.
 .card {
-  display: flex;
-  flex-direction: column;
-  gap: $space-2;
-  padding: $space-2;
-  border: 1px solid $color-line;
-  border-radius: $radius-lg;
+  @include save-card-frame;
+}
 
-  @include respond-to(desktop) {
-    padding: $space-2 + $space-1;
-  }
+.row {
+  display: flex;
+  align-items: center;
 }
 
 .kind,
-.line,
-.shortLine,
-.name,
 .date {
-  display: block;
-  height: $space-4;
-  background: $color-placeholder;
-  border-radius: $radius-pill;
-}
-
-.kind {
-  width: 30%;
+  height: line-height(caption);
 }
 
 .captionArea {
   display: flex;
   flex-direction: column;
-  gap: $space-1;
-  min-height: 3 * map.get(map.get($text-styles, small), line-height);
+  height: $save-card-caption-height;
 }
 
-.shortLine {
-  width: 60%;
+.captionLine {
+  height: line-height(small);
 }
 
 .name {
+  height: line-height(label);
+}
+
+.username,
+.link {
+  height: $touch-target;
+}
+
+.link {
+  margin-top: auto;
+}
+
+.bar {
+  width: 100%;
+  height: $space-2 + $space-1;
+  background: $color-placeholder;
+  border-radius: $radius-pill;
+}
+
+.kind .bar {
+  width: 30%;
+}
+
+.captionLine:last-child .bar {
+  width: 60%;
+}
+
+.name .bar {
   width: 55%;
 }
 
-.date {
+.username .bar {
+  width: 45%;
+}
+
+.date .bar {
   width: 40%;
+}
+
+.link .bar {
+  width: 65%;
 }

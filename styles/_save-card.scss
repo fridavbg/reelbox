@@ -1,0 +1,33 @@
+@use "sass:map";
+@use "variables" as *;
+@use "breakpoints" as *;
+
+// Shared by the save card and its loading skeleton, so the grid doesn't
+// jump when the saves arrive.
+
+/// The line height of one of the design system's text styles.
+/// @param {String} $name - A key of `$text-styles`, e.g. caption.
+/// @return {Number} Its line height.
+@function line-height($name) {
+  @return map.get(map.get($text-styles, $name), line-height);
+}
+
+// The caption always takes 3 lines, even when short or missing, so the
+// rest of the card sits in the same place on every card.
+$save-card-caption-height: 3 * line-height(small);
+
+// The card's frame: border, padding and the space between its rows.
+// Usage: @include save-card-frame;
+@mixin save-card-frame {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+  padding: $space-2;
+  border: 1px solid $color-line;
+  border-radius: $radius-lg;
+
+  @include respond-to(desktop) {
+    padding: $space-2 + $space-1;
+  }
+}
