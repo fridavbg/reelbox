@@ -42,6 +42,20 @@ describe("cardCaption", () => {
     const caption = "a".repeat(CARD_CAPTION_LENGTH + 50);
     expect(cardCaption(caption)).toBe(`${"a".repeat(CARD_CAPTION_LENGTH)}…`);
   });
+
+  it("never cuts an emoji in half", () => {
+    const caption = `${"a".repeat(CARD_CAPTION_LENGTH - 1)}😀${"b".repeat(50)}`;
+    expect(cardCaption(caption)).toBe(
+      `${"a".repeat(CARD_CAPTION_LENGTH - 1)}😀…`,
+    );
+  });
+
+  it("cuts at the card length when the last space is far before it", () => {
+    const caption = `Recipe: ${"x".repeat(400)}`;
+    expect(cardCaption(caption)).toBe(
+      `Recipe: ${"x".repeat(CARD_CAPTION_LENGTH - 8)}…`,
+    );
+  });
 });
 
 describe("kindText", () => {
