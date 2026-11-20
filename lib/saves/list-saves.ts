@@ -29,6 +29,7 @@ export async function listSaves(userId: string, cursor?: SavesCursor) {
       creatorName: true,
       creatorUrl: true,
       savedAt: true,
+      noLongerSavedAt: true,
       tags: {
         select: { tag: { select: { name: true } } },
         orderBy: { tag: { nameKey: "asc" } },

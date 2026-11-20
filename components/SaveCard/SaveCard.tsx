@@ -1,9 +1,10 @@
-import { Clapperboard, ImageIcon } from "lucide-react";
+import { BookmarkX, Clapperboard, ImageIcon } from "lucide-react";
 import type { Ref } from "react";
 import type { SaveListItem } from "@/lib/saves/list-saves";
 import {
   DEMO_SAVE_NOTE,
   kindText,
+  NO_LONGER_SAVED,
   openOnInstagramContext,
   PROFILE_LINK_CONTEXT,
   savedOnText,
@@ -25,8 +26,9 @@ type Props = {
 
 /**
  * One save in the grid. The export has no images, so the card shows the
- * kind, the caption, the creator, the saved date, its tags and a link to
- * the post. Demo saves get a note instead of the links.
+ * kind, the caption, the creator, the saved date, a badge if it's no longer
+ * saved on Instagram, its tags and a link to the post. Demo saves get a
+ * note instead of the links.
  *
  * The creator comes first in the HTML, so the heading starts the card for
  * screen readers; CSS shows the kind and caption above it. The heading is
@@ -73,6 +75,16 @@ export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
           {savedOnText(save.savedAt, timeZone)}
         </time>
       </p>
+      {save.noLongerSavedAt && (
+        <p className={styles.badge}>
+          <BookmarkX
+            size={16}
+            aria-hidden="true"
+            className={styles.badgeIcon}
+          />
+          {NO_LONGER_SAVED}
+        </p>
+      )}
       {save.tags.length > 0 && (
         <ul className={styles.tags} aria-label="Tags">
           {save.tags.map((tag) => (
