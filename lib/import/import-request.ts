@@ -64,22 +64,28 @@ function importRequestSchema(now: Date) {
     shortcodes: z.array(shortcodeSchema).max(MAX_IMPORT_POSTS),
   });
 
-  return z
-    .object({
-      posts: z.array(postSchema).min(1).max(MAX_IMPORT_POSTS),
-      collections: z.array(collectionSchema).max(MAX_COLLECTIONS),
-      invalidCount: z.number().int().min(0).max(MAX_INVALID_COUNT),
-      unreadableLinks: z
-        .array(z.string().max(MAX_TEXT_LENGTH))
-        .max(MAX_INVALID_COUNT),
-    })
-    .transform(({ unreadableLinks, ...upload }) => ({
-      ...upload,
-      // Only links to posts count; anything else can't match a save.
-      unreadableShortcodes: unreadableLinks.flatMap(
-        (link) => parsePostLink(link)?.shortcode ?? [],
-      ),
-    }));
+  return (
+    z
+      .object({
+        posts: z.array(postSchema).min(1).max(MAX_IMPORT_POSTS),
+        collections: z.array(collectionSchema).max(MAX_COLLECTIONS),
+        invalidCount: z.number().int().min(0).max(MAX_INVALID_COUNT),
+        // Optional, so a page loaded before the field existed can still import.
+        unreadableLinks: z
+          .array(z.string().max(MAX_TEXT_LENGTH))
+          .max(MAX_INVALID_COUNT)
+          .default([]),
+      })
+      // At most one link per save the browser couldn't read.
+      .refine((upload) => upload.unreadableLinks.length <= upload.invalidCount)
+      .transform(({ unreadableLinks, ...upload }) => ({
+        ...upload,
+        // Only links to posts count; anything else can't match a save.
+        unreadableShortcodes: unreadableLinks.flatMap(
+          (link) => parsePostLink(link)?.shortcode ?? [],
+        ),
+      }))
+  );
 }
 
 /**
