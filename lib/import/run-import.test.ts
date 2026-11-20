@@ -60,6 +60,19 @@ describe("runImport", () => {
     expect(upload.invalidCount).toBe(6);
   });
 
+  it("sends the links of saves it couldn't read, so they're never flagged as no longer saved", async () => {
+    const { send, sent } = fakeSend();
+    await runImport(exportFiles(), send);
+    const upload = await unpack(sent[0]);
+    // 4 of the 6 have a link; the server keeps only links to posts.
+    expect(upload.unreadableLinks).toEqual([
+      "https://www.instagram.com/demo.wanderer/",
+      "https://www.instagram.com/p/DemoNoDate4/",
+      "https://www.instagram.com/p/DemoNoOwner5/",
+      "https://www.instagram.com/p/DemoOnlyHere/",
+    ]);
+  });
+
   it("returns the summary with the export's date range and problems", async () => {
     const result = await runImport(exportFiles(), fakeSend().send);
     expect(result).toMatchObject({

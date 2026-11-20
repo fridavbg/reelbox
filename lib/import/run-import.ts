@@ -97,6 +97,8 @@ async function importFiles(
       posts,
       collections,
       invalidCount: unreadable.saves.length,
+      // These may still be saved, so the server never flags them.
+      unreadableLinks: unreadable.saves.flatMap((entry) => entry.url ?? []),
     }),
   );
   const sizeError = uploadSizeError(upload.size, maxRequestBytes);

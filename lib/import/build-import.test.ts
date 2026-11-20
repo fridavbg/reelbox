@@ -48,7 +48,13 @@ function build(
 ) {
   return buildImport(
     userId,
-    { posts: [], collections: [], invalidCount: 0, ...input },
+    {
+      posts: [],
+      collections: [],
+      invalidCount: 0,
+      unreadableShortcodes: [],
+      ...input,
+    },
     { ...empty, ...existing },
     now,
   );

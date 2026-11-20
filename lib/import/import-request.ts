@@ -64,11 +64,22 @@ function importRequestSchema(now: Date) {
     shortcodes: z.array(shortcodeSchema).max(MAX_IMPORT_POSTS),
   });
 
-  return z.object({
-    posts: z.array(postSchema).min(1).max(MAX_IMPORT_POSTS),
-    collections: z.array(collectionSchema).max(MAX_COLLECTIONS),
-    invalidCount: z.number().int().min(0).max(MAX_INVALID_COUNT),
-  });
+  return z
+    .object({
+      posts: z.array(postSchema).min(1).max(MAX_IMPORT_POSTS),
+      collections: z.array(collectionSchema).max(MAX_COLLECTIONS),
+      invalidCount: z.number().int().min(0).max(MAX_INVALID_COUNT),
+      unreadableLinks: z
+        .array(z.string().max(MAX_TEXT_LENGTH))
+        .max(MAX_INVALID_COUNT),
+    })
+    .transform(({ unreadableLinks, ...upload }) => ({
+      ...upload,
+      // Only links to posts count; anything else can't match a save.
+      unreadableShortcodes: unreadableLinks.flatMap(
+        (link) => parsePostLink(link)?.shortcode ?? [],
+      ),
+    }));
 }
 
 /**
