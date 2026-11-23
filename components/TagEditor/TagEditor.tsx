@@ -14,6 +14,7 @@ import { Alert } from "@/components/Alert/Alert";
 import { Button } from "@/components/Button/Button";
 import { TagChip } from "@/components/TagChip/TagChip";
 import { TextInput } from "@/components/TextInput/TextInput";
+import { Toast } from "@/components/Toast/Toast";
 import { NO_TAGS } from "@/lib/saves/saves-text";
 import {
   matchingTags,
@@ -27,8 +28,10 @@ import {
   MATCHING_TAGS,
   matchingTagsText,
   MOST_USED_TAGS,
+  removedTagText,
   showAllTagsText,
   TAG_SAVE_FAILED,
+  UNDO,
 } from "@/lib/tags-text";
 import { applyTagChange, isSaving } from "./tag-change";
 import styles from "./TagEditor.module.scss";
@@ -68,7 +71,8 @@ type Props = {
  *
  * Changes show at once and are saved on the server in the background,
  * which then sends the saved tags. If a save fails, the tags go back to
- * how they were and a message says so.
+ * how they were and a message says so. A removal can be undone from a
+ * message at the bottom of the screen until the next change.
  *
  * @param props - The save, its tags, and all the user's tags.
  * @returns The tags and the form.
@@ -79,6 +83,8 @@ export function TagEditor({ postId, tags, userTags }: Props) {
   const [nameError, setNameError] = useState<string>();
   const [error, setError] = useState<string>();
   const [showAll, setShowAll] = useState(false);
+  // The last tag removed, offered back by the toast until the next change.
+  const [removed, setRemoved] = useState<string>();
   const offeredId = useId();
   const listRef = useRef<HTMLUListElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,13 +119,16 @@ export function TagEditor({ postId, tags, userTags }: Props) {
 
   /**
    * Shows the tag on the save at once, clears the field and puts focus in
-   * it (a tapped tag's button goes away), then saves it. If that fails,
-   * the tag disappears again and a typed name comes back in the field.
+   * it (a tapped tag's or Undo's button goes away), then saves it. If that
+   * fails, the tag disappears again, and a typed name comes back in the
+   * field.
    *
-   * @param tagName - The name typed, or the tag tapped.
+   * @param tagName - The name typed, the tag tapped, or the tag to undo.
+   * @param typed - Whether it was typed in the field.
    */
-  function add(tagName: string) {
+  function add(tagName: string, typed = false) {
     setError(undefined);
+    setRemoved(undefined);
     setName("");
     inputRef.current?.focus();
     startTransition(async () => {
@@ -127,7 +136,7 @@ export function TagEditor({ postId, tags, userTags }: Props) {
       const result = await saveTag(() => addTag(postId, tagName));
       if (!result.ok) {
         setError(result.error);
-        setName((current) => current || tagName);
+        if (typed) setName((current) => current || tagName);
       }
     });
   }
@@ -136,16 +145,20 @@ export function TagEditor({ postId, tags, userTags }: Props) {
     event.preventDefault();
     const invalid = tagNameError(name);
     setNameError(invalid);
-    if (!invalid) add(name);
+    if (!invalid) add(name, true);
   }
 
   function handleRemove(tag: Tag, index: number) {
     setError(undefined);
+    setRemoved(tag.name);
     removedAt.current = index;
     startTransition(async () => {
       showChange({ type: "remove", id: tag.id });
       const result = await saveTag(() => removeTag(postId, tag.id));
-      if (!result.ok) setError(result.error);
+      if (!result.ok) {
+        setRemoved(undefined);
+        setError(result.error);
+      }
     });
   }
 
@@ -222,6 +235,13 @@ export function TagEditor({ postId, tags, userTags }: Props) {
           {showAll ? "Show fewer" : showAllTagsText(available.length)}
         </Button>
       )}
+
+      <Toast
+        message={removed && removedTagText(removed)}
+        action={
+          removed ? { label: UNDO, onClick: () => add(removed) } : undefined
+        }
+      />
     </div>
   );
 }

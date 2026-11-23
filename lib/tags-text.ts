@@ -38,3 +38,16 @@ export const MATCHING_TAGS = "Matching tags";
 export function showAllTagsText(count: number) {
   return `Show all ${count} tags`;
 }
+
+/**
+ * The toast after removing a tag from a save.
+ *
+ * @param name - The tag removed.
+ * @returns E.g. "Removed Recipes".
+ */
+export function removedTagText(name: string) {
+  return `Removed ${name}`;
+}
+
+/** The toast's button that puts a removed tag back. */
+export const UNDO = "Undo";
