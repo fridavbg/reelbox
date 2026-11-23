@@ -21,6 +21,15 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   loadingLabel?: string;
 };
 
+/**
+ * A button that ignores clicks while `loading`. It stays enabled then, so
+ * keyboard focus isn't lost, but a click runs no `onClick` and submits no
+ * form, so callers never need their own "already loading" check.
+ *
+ * @param props - The button's attributes, its `variant`, and `loading` with
+ *   the `loadingLabel` shown meanwhile.
+ * @returns The button.
+ */
 export function Button({
   variant = "primary",
   loading = false,
@@ -28,6 +37,7 @@ export function Button({
   type = "button",
   className,
   children,
+  onClick,
   ...rest
 }: Props) {
   return (
@@ -35,7 +45,16 @@ export function Button({
       type={type}
       className={buttonClassName(variant, className)}
       aria-busy={loading || undefined}
+      aria-disabled={loading || undefined}
       {...rest}
+      onClick={(event) => {
+        // Also cancels a form submit, including one from Enter in a field.
+        if (loading) {
+          event.preventDefault();
+          return;
+        }
+        onClick?.(event);
+      }}
     >
       {loading ? loadingLabel : children}
     </button>

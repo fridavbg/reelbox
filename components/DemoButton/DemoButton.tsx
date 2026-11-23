@@ -16,7 +16,6 @@ export function DemoButton() {
   const [error, setError] = useState<string>();
 
   async function startDemo() {
-    if (loading) return;
     setLoading(true);
     setError(undefined);
     const { error: demoError } = await authClient.signIn.anonymous();
