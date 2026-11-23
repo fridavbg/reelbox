@@ -1,11 +1,16 @@
 import { Clapperboard, ImageIcon } from "lucide-react";
+import Link from "next/link";
 import type { Ref } from "react";
 import { NoLongerSavedBadge } from "@/components/NoLongerSavedBadge/NoLongerSavedBadge";
 import { OpenOnInstagram } from "@/components/OpenOnInstagram/OpenOnInstagram";
 import { ProfileLink } from "@/components/ProfileLink/ProfileLink";
 import { TagChip } from "@/components/TagChip/TagChip";
 import type { SaveListItem } from "@/lib/saves/list-saves";
-import { kindText, savedOnText } from "@/lib/saves/save-card-text";
+import {
+  EDIT_TAGS_CONTEXT,
+  kindText,
+  savedOnText,
+} from "@/lib/saves/save-card-text";
 import styles from "./SaveCard.module.scss";
 
 /** The icon next to the kind's word; decorative, the word says the kind. */
@@ -43,7 +48,14 @@ export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
     <article ref={ref} tabIndex={ref ? -1 : undefined} className={styles.card}>
       {/* `||`, not `??`: an empty name counts as none. The username row is
           always there, so every card has the same rows. */}
-      <h2 className={styles.creator}>{save.creatorName || username}</h2>
+      <h2 className={styles.creator}>
+        {/* Stretched over the whole card by CSS, so tapping anywhere on it
+            opens the save's page. */}
+        <Link href={`/saves/${save.id}`} className={styles.cardLink}>
+          {save.creatorName || username}
+          <span className={styles.hidden}>{EDIT_TAGS_CONTEXT}</span>
+        </Link>
+      </h2>
       <p className={styles.username}>
         <ProfileLink
           username={save.creatorUsername}

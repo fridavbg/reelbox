@@ -1,11 +1,49 @@
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
+@use "../../styles/accessibility" as *;
 @use "../../styles/save-card" as *;
 
 .card {
   @include save-card-frame;
+  position: relative;
   flex: 1;
   overflow-wrap: anywhere;
+
+  // The link's own outline would only circle the name, so the whole card
+  // gets the focus ring instead.
+  &:has(.cardLink:focus-visible) {
+    outline: 2px solid $color-accent-strong;
+    outline-offset: 2px;
+  }
+}
+
+// The heading's link to the save's page. Its ::after covers the whole
+// card, so the card is one big tap target; the links below sit on top.
+.cardLink {
+  color: inherit;
+  text-decoration: none;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: $radius-lg;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+// Above the stretched link, so these still open Instagram.
+.username a,
+a.link {
+  position: relative;
+  z-index: 1;
 }
 
 // The HTML starts with the creator, so the heading leads for screen
@@ -82,4 +120,8 @@
 // free space and lift the badge off the bottom.
 .badge + .link {
   margin-top: 0;
+}
+
+.hidden {
+  @include visually-hidden;
 }

@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { SaveListItem } from "@/lib/saves/list-saves";
-import { PROFILE_LINK_CONTEXT } from "@/lib/saves/save-card-text";
+import {
+  EDIT_TAGS_CONTEXT,
+  PROFILE_LINK_CONTEXT,
+} from "@/lib/saves/save-card-text";
 import { SaveCard } from "./SaveCard";
 
 const save: SaveListItem = {
@@ -64,7 +67,26 @@ describe("SaveCard", () => {
   });
 
   it("has the creator's display name as its heading", () => {
-    expect(text(heading(render())!)).toBe("Creator One");
+    expect(text(heading(render())!)).toBe(`Creator One${EDIT_TAGS_CONTEXT}`);
+  });
+
+  it("links its heading to the save's own page, saying what it's for", () => {
+    const link = heading(render())!.match(/<a[^>]*>.*<\/a>/)?.[0];
+    expect(link).toContain(`href="/saves/${save.id}"`);
+    expect(link).not.toContain("target=");
+    expect(text(link!)).toBe(`Creator One${EDIT_TAGS_CONTEXT}`);
+  });
+
+  it("links demo saves to their page too, since demo visitors can tag", () => {
+    expect(heading(render({}, true))).toContain(`href="/saves/${save.id}"`);
+  });
+
+  it("keeps the profile link and Open on Instagram outside the heading's link", () => {
+    const html = render();
+    expect(profileLink(heading(html)!)).toBeUndefined();
+    expect(profileLink(html)).toBeDefined();
+    expect(text(heading(html)!)).not.toContain("Open on Instagram");
+    expect(text(html)).toContain("Open on Instagram");
   });
 
   it("links @username to the creator's profile in a new tab", () => {
@@ -81,7 +103,7 @@ describe("SaveCard", () => {
     ["an empty display name", ""],
   ])("uses @username as its heading when there's %s", (_, creatorName) => {
     const html = render({ creatorName });
-    expect(text(heading(html)!)).toBe("@creator_one");
+    expect(text(heading(html)!)).toBe(`@creator_one${EDIT_TAGS_CONTEXT}`);
     expect(profileLink(heading(html)!)).toBeUndefined();
     expect(profileLink(html)).toBeDefined();
   });
