@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parsePostLink } from "@/lib/export/instagram-url";
 import { parseExport, type InvalidEntry } from "@/lib/export/parse-export";
 import { readExportFiles, type Upload } from "@/lib/export/read-export-files";
 import { splitUnreadable, type ImportSummary } from "./build-import";
@@ -99,7 +100,9 @@ async function importFiles(
       collections,
       invalidCount: unreadable.saves.length,
       // Still saved, only unreadable, so the server never flags them.
-      unreadableLinks: unreadable.saves.flatMap((entry) => entry.url ?? []),
+      unreadableShortcodes: unreadable.saves.flatMap((entry) =>
+        entry.url ? (parsePostLink(entry.url)?.shortcode ?? []) : [],
+      ),
     }),
   );
   const sizeError = uploadSizeError(upload.size, maxRequestBytes);
