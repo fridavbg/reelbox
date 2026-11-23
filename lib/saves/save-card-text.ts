@@ -8,6 +8,12 @@ import { formatDay } from "@/lib/import/import-summary";
 export const DEMO_SAVE_NOTE = "Sample save, not on Instagram";
 
 /**
+ * Hidden text after the creator's name in a card's heading, which links to
+ * the save's own page: the name alone doesn't say what the link does.
+ */
+export const EDIT_TAGS_CONTEXT = ", edit tags";
+
+/**
  * Hidden text after "@username" in the link to a creator's profile, so the
  * link says where it goes and that it opens a new tab.
  */
