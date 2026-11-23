@@ -9,6 +9,14 @@
   flex: 1;
   overflow-wrap: anywhere;
 
+  // The whole card opens the save's page, so hovering anywhere on it says
+  // so. Only where hover exists: on phones a tap would leave it stuck.
+  @media (hover: hover) {
+    &:has(.cardLink:hover) {
+      border-color: $color-line-strong;
+    }
+  }
+
   // The link's own outline would only circle the name, so the whole card
   // gets the focus ring instead.
   &:has(.cardLink:focus-visible) {
@@ -31,7 +39,7 @@
   }
 
   &:hover {
-    text-decoration: underline;
+    text-decoration-line: underline;
   }
 
   &:focus-visible {

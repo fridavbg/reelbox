@@ -81,6 +81,10 @@ $radius-pill: 999px;
 
 // Size
 $touch-target: 44px;
+// Link underlines: thicker on hover, so hovering shows by more than a
+// change between two dark colors.
+$underline: 1px;
+$underline-hover: 1.5px;
 $control-height: 48px;
 
 // Breakpoints: use through the respond-to mixin in _breakpoints.scss.
