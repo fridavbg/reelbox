@@ -1,8 +1,9 @@
 import { CircleAlert } from "lucide-react";
-import { useId, type InputHTMLAttributes } from "react";
+import { useId, type ComponentProps } from "react";
 import styles from "./TextInput.module.scss";
 
-type Props = InputHTMLAttributes<HTMLInputElement> & {
+// Everything an <input> takes, `ref` included.
+type Props = ComponentProps<"input"> & {
   label: string;
   helperText?: string;
   // Replaces the helper text and marks the field invalid.

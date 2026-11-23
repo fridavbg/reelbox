@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
+import type { UserTag } from "@/lib/tags";
 
 /**
  * One of a user's saves, for its own page: everything the card shows, the
@@ -45,3 +46,20 @@ export async function getSave(userId: string, postId: string) {
 
 /** A save as its own page shows it. */
 export type SaveDetails = NonNullable<Awaited<ReturnType<typeof getSave>>>;
+
+/**
+ * All the user's tags in alphabetical order, with how many of their saves
+ * each is on: the save's page offers the most used ones, and matches the
+ * rest while typing. Tags on no save are included: they're still the user's.
+ *
+ * @param userId - The signed-in user.
+ * @returns The tags with their counts.
+ */
+export async function listTags(userId: string): Promise<UserTag[]> {
+  const tags = await db().tag.findMany({
+    where: { userId },
+    select: { name: true, _count: { select: { posts: true } } },
+    orderBy: { nameKey: "asc" },
+  });
+  return tags.map((tag) => ({ name: tag.name, count: tag._count.posts }));
+}

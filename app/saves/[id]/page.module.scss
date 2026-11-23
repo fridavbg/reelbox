@@ -64,16 +64,3 @@
 .sectionTitle {
   @include text-style(heading);
 }
-
-.tagList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $space-2;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.muted {
-  color: $color-ink-muted;
-}
