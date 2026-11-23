@@ -46,7 +46,6 @@ export function SignInForm() {
 
   async function handleEmailSubmit(event: FormEvent) {
     event.preventDefault();
-    if (loading) return;
     const invalid = emailError(email);
     setError(invalid);
     if (invalid) return;
@@ -61,7 +60,6 @@ export function SignInForm() {
 
   async function handleCodeSubmit(event: FormEvent) {
     event.preventDefault();
-    if (loading) return;
     const invalid = codeError(code);
     setError(invalid);
     if (invalid) return;
