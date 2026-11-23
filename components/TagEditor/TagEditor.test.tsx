@@ -71,3 +71,11 @@ describe("TagEditor", () => {
     expect(html).toMatch(/<button[^>]*type="submit"[^>]*>Add<\/button>/);
   });
 });
+
+describe("TagEditor's undo message", () => {
+  it("is in the page from the start, empty, so the first removal is announced", () => {
+    const html = render();
+    expect(html.match(/role="status"/g)).toHaveLength(2);
+    expect(html).not.toContain("Undo");
+  });
+});
