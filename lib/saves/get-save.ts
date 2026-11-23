@@ -44,9 +44,6 @@ export async function getSave(userId: string, postId: string) {
   };
 }
 
-/** A save as its own page shows it. */
-export type SaveDetails = NonNullable<Awaited<ReturnType<typeof getSave>>>;
-
 /**
  * All the user's tags in alphabetical order, with how many of their saves
  * each is on: the save's page offers the most used ones, and matches the

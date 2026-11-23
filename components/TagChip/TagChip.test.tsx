@@ -12,14 +12,6 @@ describe("TagChip", () => {
     expect(html).toContain("Recipes");
   });
 
-  it("marks a suggestion unavailable while a change is saving, keeping it focusable", () => {
-    const html = renderToStaticMarkup(
-      <TagChip label="Recipes" onAdd={() => {}} busy />,
-    );
-    expect(html).toContain('aria-disabled="true"');
-    expect(html).not.toMatch(/\sdisabled=/);
-  });
-
   it("shows a read-only tag without a button", () => {
     const html = renderToStaticMarkup(<TagChip label="Recipes" />);
     expect(html).toContain("Recipes");

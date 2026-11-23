@@ -156,7 +156,8 @@ export function TagEditor({ postId, tags, userTags }: Props) {
       showChange({ type: "remove", id: tag.id });
       const result = await saveTag(() => removeTag(postId, tag.id));
       if (!result.ok) {
-        setRemoved(undefined);
+        // Only this removal's toast: a later one may have replaced it.
+        setRemoved((current) => (current === tag.name ? undefined : current));
         setError(result.error);
       }
     });
