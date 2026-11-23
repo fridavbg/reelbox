@@ -1,0 +1,79 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/typography" as *;
+@use "../../../styles/breakpoints" as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  width: 100%;
+  max-width: 640px;
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: $touch-target;
+  @include text-style(small);
+}
+
+.save {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  overflow-wrap: anywhere;
+}
+
+.kind {
+  display: flex;
+  gap: $space-1;
+  align-items: center;
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+.title {
+  @include text-style(title);
+
+  @include respond-to(desktop) {
+    @include text-style(display);
+  }
+}
+
+.username {
+  @include text-style(small);
+}
+
+// The full caption, with the creator's own line breaks.
+.caption {
+  white-space: pre-line;
+}
+
+.meta {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+.tags {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.sectionTitle {
+  @include text-style(heading);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.muted {
+  color: $color-ink-muted;
+}

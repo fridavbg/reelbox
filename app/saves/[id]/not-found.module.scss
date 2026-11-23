@@ -1,0 +1,21 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/typography" as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  align-items: flex-start;
+  max-width: 480px;
+}
+
+.title {
+  @include text-style(title);
+}
+
+.back {
+  display: flex;
+  align-items: center;
+  min-height: $touch-target;
+  @include text-style(small);
+}
