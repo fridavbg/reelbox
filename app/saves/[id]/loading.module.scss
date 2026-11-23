@@ -1,0 +1,50 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/accessibility" as *;
+
+.page {
+  width: 100%;
+  max-width: 640px;
+}
+
+.hidden {
+  @include visually-hidden;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.bar {
+  height: $space-4;
+  background: $color-placeholder;
+  border-radius: $radius-pill;
+}
+
+.back {
+  width: 30%;
+}
+
+.kind {
+  width: 15%;
+}
+
+.title {
+  width: 60%;
+  height: $space-8;
+}
+
+.line {
+  width: 100%;
+}
+
+.short {
+  width: 70%;
+}
+
+.tags {
+  width: 45%;
+  height: $space-6;
+  margin-top: $space-4;
+}
