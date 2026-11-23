@@ -5,6 +5,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  // At least 44px both ways, also for a short label in the text variant.
+  min-width: $touch-target;
   min-height: $touch-target;
   border-radius: $radius-md;
   font-family: inherit;
