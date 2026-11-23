@@ -1,0 +1,11 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+
+.display {
+  display: inline-block;
+  padding: 0 $space-2;
+  @include text-style(caption);
+  color: $color-accent-strong;
+  background: $color-accent-soft;
+  border-radius: $radius-pill;
+}

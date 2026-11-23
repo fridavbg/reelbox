@@ -1,0 +1,13 @@
+@use "../../styles/variables" as *;
+@use "../../styles/accessibility" as *;
+
+.link,
+.text {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+}
+
+.hidden {
+  @include visually-hidden;
+}
