@@ -36,9 +36,11 @@ svg {
 
 a {
   color: $color-accent-strong;
+  text-decoration-thickness: $underline;
 
   &:hover {
     color: $color-ink;
+    text-decoration-thickness: $underline-hover;
   }
 }
 

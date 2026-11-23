@@ -61,8 +61,10 @@
   @include text-style(small);
   color: $color-accent-strong;
   text-decoration: underline;
+  text-decoration-thickness: $underline;
 
   &:hover:not(:disabled) {
     color: $color-ink;
+    text-decoration-thickness: $underline-hover;
   }
 }

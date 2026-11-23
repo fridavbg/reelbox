@@ -63,7 +63,13 @@
     min-height: $touch-target;
     color: $color-accent-strong;
     text-decoration: underline;
+    text-decoration-thickness: $underline;
     cursor: pointer;
+
+    &:hover {
+      color: $color-ink;
+      text-decoration-thickness: $underline-hover;
+    }
   }
 
   ul {
