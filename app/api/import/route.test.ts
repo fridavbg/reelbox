@@ -38,7 +38,7 @@ const upload = {
   ],
   collections: [],
   invalidCount: 0,
-  unreadableLinks: [],
+  unreadableShortcodes: [],
 };
 const summary = {
   newCount: 1,

@@ -28,7 +28,7 @@ const upload = {
   posts: [post],
   collections: [{ externalId: "1790", name: "Fika", shortcodes: ["AbC123"] }],
   invalidCount: 2,
-  unreadableLinks: ["https://www.instagram.com/p/NoDate1/"],
+  unreadableShortcodes: ["NoDate1"],
 };
 
 /** What parseImportRequest returns for `upload`. */
@@ -50,18 +50,19 @@ describe("parseImportRequest", () => {
     expect(parseImportRequest(sent(upload), now)).toEqual(parsed);
   });
 
-  it("accepts an upload without unreadable links, from a page loaded before they existed", () => {
+  it("accepts an upload without unreadable saves, from a page loaded before they were sent", () => {
     // JSON leaves out undefined fields, so the field isn't sent at all.
-    const older = { ...upload, unreadableLinks: undefined };
+    const older = { ...upload, unreadableShortcodes: undefined };
     expect(parseImportRequest(sent(older), now)?.unreadableShortcodes).toEqual(
       [],
     );
   });
 
-  it("keeps the shortcodes of unreadable saves and ignores links that aren't posts", () => {
+  it("keeps the shortcodes from the links an older page sends, ignoring links that aren't posts", () => {
     const result = parseImportRequest(
       sent({
         ...upload,
+        unreadableShortcodes: undefined,
         invalidCount: 3,
         unreadableLinks: [
           "https://www.instagram.com/reel/Reel1/?igsh=x",
@@ -72,6 +73,19 @@ describe("parseImportRequest", () => {
       now,
     );
     expect(result?.unreadableShortcodes).toEqual(["Reel1"]);
+  });
+
+  it("combines shortcodes and links if both are sent", () => {
+    const result = parseImportRequest(
+      sent({
+        ...upload,
+        invalidCount: 2,
+        unreadableShortcodes: ["Code1"],
+        unreadableLinks: ["https://www.instagram.com/p/Code2/"],
+      }),
+      now,
+    );
+    expect(result?.unreadableShortcodes).toEqual(["Code1", "Code2"]);
   });
 
   it("rebuilds links instead of trusting the ones sent", () => {
@@ -148,22 +162,36 @@ describe("parseImportRequest", () => {
       }),
     ],
     [
-      "more unreadable links than saves it couldn't read",
+      "more unreadable shortcodes than saves it couldn't read",
       sent({
         ...upload,
         invalidCount: 2,
-        unreadableLinks: Array.from(
-          { length: 3 },
-          (_, i) => `https://www.instagram.com/p/Code${i}/`,
-        ),
+        unreadableShortcodes: ["A", "B", "C"],
       }),
     ],
     [
-      "an unreadable link that's too long",
+      "more unreadable links and shortcodes together than saves it couldn't read",
+      sent({
+        ...upload,
+        invalidCount: 2,
+        unreadableShortcodes: ["A", "B"],
+        unreadableLinks: ["https://www.instagram.com/p/C/"],
+      }),
+    ],
+    [
+      "an unreadable shortcode that isn't one",
+      sent({ ...upload, unreadableShortcodes: ["not/a/shortcode"] }),
+    ],
+    [
+      "unreadable shortcodes that aren't a list",
+      sent({ ...upload, unreadableShortcodes: "x" }),
+    ],
+    [
+      "an unreadable link that's too long, from an older page",
       sent({ ...upload, unreadableLinks: ["x".repeat(MAX_TEXT_LENGTH + 1)] }),
     ],
     [
-      "unreadable links that aren't a list",
+      "unreadable links that aren't a list, from an older page",
       sent({ ...upload, unreadableLinks: "x" }),
     ],
     ["something that isn't an upload", "hello"],

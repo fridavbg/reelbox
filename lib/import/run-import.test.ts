@@ -8,6 +8,7 @@ import {
   UPLOAD_INTERRUPTED,
   UPLOAD_TOO_LARGE,
 } from "./import-messages";
+import { parseImportRequest } from "./import-request";
 import { runImport } from "./run-import";
 
 // The anonymized fixture: 3 readable saves, 3 collections, 7 problems of
@@ -61,17 +62,43 @@ describe("runImport", () => {
     expect(upload.invalidCount).toBe(6);
   });
 
-  it("sends the links of saves it couldn't read, so they're never flagged as no longer saved", async () => {
+  it("sends the shortcodes of saves it couldn't read, so they're never flagged as no longer saved", async () => {
     const { send, sent } = fakeSend();
     await runImport(exportFiles(), send);
     const upload = await unpack(sent[0]);
-    // 4 of the 6 have a link; the server keeps only links to posts.
-    expect(upload.unreadableLinks).toEqual([
-      "https://www.instagram.com/demo.wanderer/",
-      "https://www.instagram.com/p/DemoNoDate4/",
-      "https://www.instagram.com/p/DemoNoOwner5/",
-      "https://www.instagram.com/p/DemoOnlyHere/",
+    // 4 of the 6 have a link, and 3 of those are links to posts.
+    expect(upload.unreadableShortcodes).toEqual([
+      "DemoNoDate4",
+      "DemoNoOwner5",
+      "DemoOnlyHere",
     ]);
+    expect(upload).not.toHaveProperty("unreadableLinks");
+  });
+
+  it("sends an upload the server accepts when a link that isn't a post is very long", async () => {
+    const posts = JSON.parse(
+      readFileSync(
+        join(__dirname, "../export/fixtures/saved_posts.json"),
+        "utf8",
+      ),
+    );
+    posts.push({
+      timestamp: 1759395600,
+      label_values: [
+        { label: "URL", value: `https://example.com/${"x".repeat(1_000)}` },
+      ],
+    });
+    const { send, sent } = fakeSend();
+    await runImport(
+      [
+        new File([JSON.stringify(posts)], "saved_posts.json"),
+        fixture("saved_collections.json"),
+      ],
+      send,
+    );
+    const upload = await unpack(sent[0]);
+    expect(JSON.stringify(upload)).not.toContain("example.com");
+    expect(parseImportRequest(upload)).toMatchObject({ invalidCount: 7 });
   });
 
   it("returns the summary with the export's date range and problems", async () => {
