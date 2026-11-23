@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClassName } from "@/components/Button/Button";
+import { AccountActions } from "@/components/AccountActions/AccountActions";
 import { Layout } from "@/components/Layout/Layout";
 import { SaveList } from "@/components/SaveList/SaveList";
-import { SignOutButton } from "@/components/SignOutButton/SignOutButton";
 import { db } from "@/lib/db";
 import { DEMO_LIFETIME_HOURS } from "@/lib/demo/demo-settings";
 import { DEMO_CANT_IMPORT } from "@/lib/import/import-messages";
@@ -34,18 +34,7 @@ export default async function SavesPage() {
   ]);
 
   return (
-    <Layout
-      actions={
-        <>
-          {!isDemo && (
-            <Link href="/import" className={styles.headerLink}>
-              Import
-            </Link>
-          )}
-          <SignOutButton demo={isDemo} />
-        </>
-      }
-    >
+    <Layout actions={<AccountActions demo={isDemo} />}>
       {saveCount === 0 && !isDemo ? (
         <div className={styles.empty}>
           <div className={styles.illustration} aria-hidden="true">

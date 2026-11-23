@@ -1,0 +1,20 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/accessibility" as *;
+
+.link,
+.note {
+  display: flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: $touch-target;
+  @include text-style(caption);
+}
+
+.note {
+  color: $color-ink-muted;
+}
+
+.hidden {
+  @include visually-hidden;
+}

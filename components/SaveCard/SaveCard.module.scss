@@ -1,6 +1,5 @@
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
-@use "../../styles/accessibility" as *;
 @use "../../styles/save-card" as *;
 
 .card {
@@ -54,35 +53,15 @@
   @include text-style(caption);
 }
 
-.profileLink {
-  display: inline-flex;
-  align-items: center;
-  min-height: $touch-target;
-}
-
 .saved {
   @include text-style(caption);
   color: $color-ink-muted;
 }
 
-// Neutral, not a warning: the save is still here. The words carry the
-// state; the icon and background only help. Pinned to the bottom with the
-// link, so the rows above line up with cards that have no badge.
+// Pinned to the bottom with the link, so the rows above line up with cards
+// that have no badge.
 .badge {
-  display: flex;
-  gap: $space-1;
-  align-items: center;
-  align-self: flex-start;
   margin-top: auto;
-  padding: 0 $space-2;
-  @include text-style(caption);
-  color: $color-ink;
-  background: $color-badge;
-  border-radius: $radius-pill;
-}
-
-.badgeIcon {
-  flex-shrink: 0;
 }
 
 .tags {
@@ -93,41 +72,14 @@
   list-style: none;
 }
 
-.tag {
-  padding: 0 $space-2;
-  @include text-style(caption);
-  color: $color-accent-strong;
-  background: $color-accent-soft;
-  border-radius: $radius-pill;
-}
-
+// "Open on Instagram", or the demo's note in its place. Pinned to the
+// bottom, so links line up across a row.
 .link {
-  display: flex;
-  align-items: center;
-  align-self: flex-start;
-  // Pinned to the bottom, so links line up across a row.
   margin-top: auto;
-  min-height: $touch-target;
-  @include text-style(caption);
 }
 
 // The badge above is already pinned; a second auto margin would split the
-// free space and lift the badge off the bottom. Demo saves are never
-// flagged, so the demo note needs no such rule.
+// free space and lift the badge off the bottom.
 .badge + .link {
   margin-top: 0;
-}
-
-// As tall as the link it replaces, so demo cards have the same height.
-.demoNote {
-  display: flex;
-  align-items: center;
-  margin-top: auto;
-  min-height: $touch-target;
-  @include text-style(caption);
-  color: $color-ink-muted;
-}
-
-.hidden {
-  @include visually-hidden;
 }
