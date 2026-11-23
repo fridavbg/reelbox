@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { MAX_TAG_LENGTH } from "./tag-settings";
 import {
+  matchingTags,
+  mostUsedTags,
   parseAddTagInput,
   parseRemoveTagInput,
   tagKey,
@@ -74,5 +76,85 @@ describe("parseRemoveTagInput", () => {
     ["ids that aren't text", 1, 2],
   ])("refuses %s", (_, post, tag) => {
     expect(parseRemoveTagInput(post, tag)).toBeNull();
+  });
+});
+
+describe("matchingTags", () => {
+  const names = [
+    "Bread",
+    "Dinner",
+    "Recipes",
+    "Rec room",
+    "Travel",
+    "Weeknight",
+  ];
+
+  it("offers nothing until something is typed", () => {
+    expect(matchingTags(names, "  ", [])).toEqual([]);
+  });
+
+  it("finds tags containing the text, whatever its capitals", () => {
+    expect(matchingTags(names, "EA", [])).toEqual(["Bread"]);
+  });
+
+  it("lists tags starting with the text first", () => {
+    expect(matchingTags(names, "re", [])).toEqual([
+      "Recipes",
+      "Rec room",
+      "Bread",
+    ]);
+  });
+
+  it("leaves out tags already on the save, whatever their capitals", () => {
+    expect(matchingTags(names, "rec", ["recipes"])).toEqual(["Rec room"]);
+  });
+
+  it("offers at most 6", () => {
+    const many = Array.from({ length: 10 }, (_, i) => `Tag ${i}`);
+    expect(matchingTags(many, "tag", [])).toHaveLength(6);
+  });
+});
+
+describe("mostUsedTags", () => {
+  const tags = [
+    { name: "Bread", count: 2 },
+    { name: "Dinner", count: 9 },
+    { name: "Recipes", count: 9 },
+    { name: "Travel", count: 0 },
+    { name: "Weeknight", count: 4 },
+  ];
+
+  it("lists the tags used on most saves first, then alphabetically", () => {
+    expect(mostUsedTags(tags, [])).toEqual([
+      "Dinner",
+      "Recipes",
+      "Weeknight",
+      "Bread",
+      "Travel",
+    ]);
+  });
+
+  it("leaves out tags already on the save, whatever their capitals", () => {
+    expect(mostUsedTags(tags, ["dinner"])).toEqual([
+      "Recipes",
+      "Weeknight",
+      "Bread",
+      "Travel",
+    ]);
+  });
+
+  it("offers at most 6", () => {
+    const many = Array.from({ length: 10 }, (_, i) => ({
+      name: `Tag ${i}`,
+      count: i,
+    }));
+    expect(mostUsedTags(many, [])).toEqual([
+      "Tag 9",
+      "Tag 8",
+      "Tag 7",
+      "Tag 6",
+      "Tag 5",
+      "Tag 4",
+    ]);
   });
 });

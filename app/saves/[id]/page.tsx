@@ -8,10 +8,10 @@ import { NoLongerSavedBadge } from "@/components/NoLongerSavedBadge/NoLongerSave
 import { OpenOnInstagram } from "@/components/OpenOnInstagram/OpenOnInstagram";
 import { ProfileLink } from "@/components/ProfileLink/ProfileLink";
 import { SavedOn } from "@/components/SavedOn/SavedOn";
-import { TagChip } from "@/components/TagChip/TagChip";
-import { getSave } from "@/lib/saves/get-save";
+import { TagEditor } from "@/components/TagEditor/TagEditor";
+import { getSave, listTags } from "@/lib/saves/get-save";
 import { kindText } from "@/lib/saves/save-card-text";
-import { collectionsText, NO_TAGS } from "@/lib/saves/saves-text";
+import { collectionsText } from "@/lib/saves/saves-text";
 import { requireUser } from "@/lib/session";
 import styles from "./page.module.scss";
 
@@ -29,7 +29,10 @@ const kindIcons = { REEL: Clapperboard, POST: ImageIcon };
 export default async function SavePage({ params }: PageProps<"/saves/[id]">) {
   const { id } = await params;
   const user = await requireUser();
-  const save = await getSave(user.id, id);
+  const [save, userTags] = await Promise.all([
+    getSave(user.id, id),
+    listTags(user.id),
+  ]);
   if (!save) notFound();
 
   const isDemo = Boolean(user.isAnonymous);
@@ -77,17 +80,7 @@ export default async function SavePage({ params }: PageProps<"/saves/[id]">) {
           <h2 id="tags-title" className={styles.sectionTitle}>
             Tags
           </h2>
-          {save.tags.length > 0 ? (
-            <ul className={styles.tagList}>
-              {save.tags.map((tag) => (
-                <li key={tag.id}>
-                  <TagChip label={tag.name} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.muted}>{NO_TAGS}</p>
-          )}
+          <TagEditor postId={save.id} tags={save.tags} userTags={userTags} />
         </section>
       </div>
     </Layout>

@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const findFirst = vi.fn();
-vi.mock("@/lib/db", () => ({ db: () => ({ post: { findFirst } }) }));
+const findMany = vi.fn();
+vi.mock("@/lib/db", () => ({
+  db: () => ({ post: { findFirst }, tag: { findMany } }),
+}));
 
-const { getSave } = await import("./get-save");
+const { getSave, listTags } = await import("./get-save");
 
 const userId = "00000000-0000-4000-8000-0000000000aa";
 const postId = "00000000-0000-4000-8000-000000000001";
@@ -52,5 +55,19 @@ describe("getSave", () => {
       ],
       collections: ["Dinner ideas"],
     });
+  });
+});
+
+describe("listTags", () => {
+  it("lists the user's own tags with how many saves each is on", async () => {
+    findMany.mockResolvedValue([
+      { name: "Recipes", _count: { posts: 9 } },
+      { name: "Travel", _count: { posts: 0 } },
+    ]);
+    expect(await listTags(userId)).toEqual([
+      { name: "Recipes", count: 9 },
+      { name: "Travel", count: 0 },
+    ]);
+    expect(findMany.mock.calls[0][0].where).toEqual({ userId });
   });
 });

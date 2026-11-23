@@ -1,6 +1,8 @@
 @use "../../styles/variables" as *;
 @use "../../styles/typography" as *;
 
+$chip-height: 36px;
+
 .display {
   display: inline-block;
   padding: 0 $space-2;
@@ -8,4 +10,72 @@
   color: $color-accent-strong;
   background: $color-accent-soft;
   border-radius: $radius-pill;
+}
+
+.removable {
+  display: inline-flex;
+  align-items: center;
+  height: $chip-height;
+  padding-left: $space-4;
+  @include text-style(small);
+  color: $color-accent-strong;
+  background: $color-accent-soft;
+  border-radius: $radius-pill;
+}
+
+// 44px square, so it's easy to tap; the negative margins let it reach past
+// the 36px chip without making the chip taller.
+.remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: $touch-target;
+  height: $touch-target;
+  margin: (-($touch-target - $chip-height) * 0.5) 0;
+  padding: 0;
+  border: none;
+  border-radius: $radius-pill;
+  background: none;
+  color: $color-accent-strong;
+  cursor: pointer;
+
+  &:hover:not([aria-disabled="true"]) {
+    color: $color-ink;
+  }
+
+  &[aria-disabled="true"] {
+    cursor: progress;
+  }
+}
+
+// The button is 44px tall for tapping; the dashed chip inside it is 36px.
+.suggestion {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+
+  &[aria-disabled="true"] {
+    cursor: progress;
+  }
+}
+
+.suggested {
+  display: inline-flex;
+  align-items: center;
+  height: $chip-height;
+  padding: 0 $space-4;
+  border: 1px dashed $color-accent-strong;
+  border-radius: $radius-pill;
+  @include text-style(small);
+  color: $color-accent-strong;
+
+  .suggestion:hover:not([aria-disabled="true"]) & {
+    border-style: solid;
+    background: $color-accent-soft;
+  }
 }

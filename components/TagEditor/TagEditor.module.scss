@@ -1,0 +1,59 @@
+@use "../../styles/variables" as *;
+@use "../../styles/accessibility" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/save-card" as *;
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.muted {
+  color: $color-ink-muted;
+}
+
+.form {
+  display: flex;
+  gap: $space-2;
+  align-items: flex-start;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+}
+
+// Level with the field, below its label, also when an error shows under it.
+.add {
+  flex-shrink: 0;
+  margin-top: line-height(label) + $space-2;
+}
+
+.hidden {
+  @include visually-hidden;
+}
+
+.offered {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.offeredTitle {
+  @include text-style(caption);
+  color: $color-ink-muted;
+}
+
+.toggle {
+  align-self: flex-start;
+}
