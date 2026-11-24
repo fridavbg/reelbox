@@ -6,11 +6,14 @@ import { Alert } from "@/components/Alert/Alert";
 import { Button } from "@/components/Button/Button";
 import { SaveCard } from "@/components/SaveCard/SaveCard";
 import type { SaveListItem } from "@/lib/saves/list-saves";
+import type { SavesFilter } from "@/lib/saves/saves-filter";
 import { LOAD_MORE_FAILED } from "@/lib/saves/saves-text";
 import { useBrowserTimeZone } from "@/lib/use-browser-time-zone";
 import styles from "./SaveList.module.scss";
 
 type Props = {
+  /** The filter the first page was read with; "Load more" uses it too. */
+  filter: SavesFilter;
   /** The first page, rendered on the server. */
   initialSaves: SaveListItem[];
   /** The cursor for the second page, or null if there is none. */
@@ -24,11 +27,16 @@ type Props = {
  * saves already shown, and focus moves to the first new card so keyboard
  * and screen reader users continue from there.
  *
- * @param props - The first page, the cursor for the next, and whether the
- *   saves are demo saves.
+ * @param props - The filter, the first page, the cursor for the next, and
+ *   whether the saves are demo saves.
  * @returns The grid and its button.
  */
-export function SaveList({ initialSaves, initialCursor, demo = false }: Props) {
+export function SaveList({
+  filter,
+  initialSaves,
+  initialCursor,
+  demo = false,
+}: Props) {
   const timeZone = useBrowserTimeZone();
   const [saves, setSaves] = useState(initialSaves);
   const [cursor, setCursor] = useState(initialCursor);
@@ -51,7 +59,7 @@ export function SaveList({ initialSaves, initialCursor, demo = false }: Props) {
     setLoading(true);
     setFailed(false);
     try {
-      const page = await loadMoreSaves(cursor);
+      const page = await loadMoreSaves(cursor, filter);
       setFirstNew(saves.length);
       setSaves([...saves, ...page.saves]);
       setCursor(page.nextCursor);
