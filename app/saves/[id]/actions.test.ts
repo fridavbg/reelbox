@@ -13,10 +13,10 @@ const findFirst = vi.fn();
 const upsert = vi.fn();
 const createMany = vi.fn();
 const deleteMany = vi.fn();
-const refresh = vi.fn();
+const revalidatePath = vi.fn();
 
 vi.mock("@/lib/session", () => ({ requireUser: async () => user }));
-vi.mock("next/cache", () => ({ refresh }));
+vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("@/lib/db", () => ({
   db: () => ({
     post: { findFirst },
@@ -52,7 +52,7 @@ describe("addTag", () => {
       data: [{ postId, tagId }],
       skipDuplicates: true,
     });
-    expect(refresh).toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/saves", "layout");
   });
 
   it("only tags the user's own saves", async () => {
@@ -66,7 +66,7 @@ describe("addTag", () => {
       userId: user.id,
     });
     expect(upsert).not.toHaveBeenCalled();
-    expect(refresh).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -92,7 +92,7 @@ describe("addTag", () => {
       ok: false,
       error: TAG_SAVE_FAILED,
     });
-    expect(refresh).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });
 
@@ -102,7 +102,7 @@ describe("removeTag", () => {
     expect(deleteMany).toHaveBeenCalledWith({
       where: { postId, tagId, post: { userId: user.id } },
     });
-    expect(refresh).toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/saves", "layout");
   });
 
   it("refuses ids that aren't UUIDs, without asking the database", async () => {
@@ -119,6 +119,6 @@ describe("removeTag", () => {
       ok: false,
       error: TAG_SAVE_FAILED,
     });
-    expect(refresh).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 });

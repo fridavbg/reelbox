@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   filterFromSearchParams,
+  filterFromURLSearchParams,
   filterSummary,
   filterHref,
   filterWhere,
   parseSavesFilter,
+  saveHref,
   type SavesFilter,
 } from "./saves-filter";
 
@@ -29,6 +31,22 @@ describe("filterFromSearchParams", () => {
     });
   });
 
+  it("reads a tag made from a long collection name", () => {
+    const name = "Weeknight dinner ideas for the whole family";
+    expect(filterFromSearchParams({ tag: name })).toEqual({
+      kind: "tag",
+      key: name.toLowerCase(),
+    });
+  });
+
+  it("reads a key that lowercasing made longer than its name", () => {
+    const name = "İ".repeat(500);
+    expect(filterFromSearchParams({ tag: name })).toEqual({
+      kind: "tag",
+      key: name.toLowerCase(),
+    });
+  });
+
   it("reads untagged", () => {
     expect(filterFromSearchParams({ untagged: "1" })).toEqual(untagged);
   });
@@ -42,7 +60,7 @@ describe("filterFromSearchParams", () => {
   it.each([
     ["an empty tag", { tag: "" }],
     ["a blank tag", { tag: "   " }],
-    ["a tag too long to exist", { tag: "a".repeat(31) }],
+    ["a tag too long to exist", { tag: "a".repeat(1001) }],
     ["a repeated tag", { tag: ["recipes", "travel"] }],
     ["untagged with another value", { untagged: "yes" }],
   ])("shows all saves for %s", (_, params) => {
@@ -130,5 +148,34 @@ describe("filterSummary", () => {
       count: 0,
       tagName: "nope",
     });
+  });
+});
+
+describe("saveHref", () => {
+  const id = "00000000-0000-4000-8000-000000000001";
+
+  it.each([
+    [all, `/saves/${id}`],
+    [untagged, `/saves/${id}?untagged=1`],
+    [recipes, `/saves/${id}?tag=recipes`],
+  ] satisfies [SavesFilter, string][])("carries %j along", (filter, href) => {
+    expect(saveHref(id, filter)).toBe(href);
+  });
+});
+
+describe("filterFromURLSearchParams", () => {
+  it("reads the filter like the server does", () => {
+    expect(
+      filterFromURLSearchParams(new URLSearchParams("tag=Recipes")),
+    ).toEqual(recipes);
+    expect(
+      filterFromURLSearchParams(new URLSearchParams("untagged=1")),
+    ).toEqual(untagged);
+  });
+
+  it("shows all saves for a repeated tag, like the server", () => {
+    expect(
+      filterFromURLSearchParams(new URLSearchParams("tag=a&tag=b")),
+    ).toEqual(all);
   });
 });

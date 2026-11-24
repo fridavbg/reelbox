@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import {
@@ -63,7 +63,7 @@ export async function addTag(
     console.error("Failed to add a tag", error);
     return failed;
   }
-  refresh();
+  showTagChange();
   return { ok: true };
 }
 
@@ -95,6 +95,16 @@ export async function removeTag(
     console.error("Failed to remove a tag", error);
     return failed;
   }
-  refresh();
+  showTagChange();
   return { ok: true };
+}
+
+/**
+ * Sends the saved tags to the page that's open, and drops the browser's
+ * copies of the other saves pages, so going back to a filtered grid shows
+ * its new counts and saves instead of the ones from before the change.
+ * `refresh()` would only update the open page.
+ */
+function showTagChange() {
+  revalidatePath("/saves", "layout");
 }

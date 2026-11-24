@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { BackToSaves } from "@/components/BackToSaves/BackToSaves";
 import { Layout } from "@/components/Layout/Layout";
 import {
   SAVE_NOT_FOUND_TEXT,
@@ -19,9 +19,7 @@ export default function SaveNotFound() {
       <div className={styles.page}>
         <h1 className={styles.title}>{SAVE_NOT_FOUND_TITLE}</h1>
         <p>{SAVE_NOT_FOUND_TEXT}</p>
-        <Link href="/saves" className={styles.back}>
-          ← Back to saves
-        </Link>
+        <BackToSaves className={styles.back} />
       </div>
     </Layout>
   );

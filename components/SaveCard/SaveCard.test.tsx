@@ -42,6 +42,18 @@ const profileLink = (html: string) =>
   )?.[0];
 
 describe("SaveCard", () => {
+  it("links to the save's page, carrying the grid's filter along", () => {
+    expect(render()).toContain(`href="/saves/${save.id}"`);
+    const html = renderToStaticMarkup(
+      <SaveCard
+        save={save}
+        timeZone="UTC"
+        filter={{ kind: "tag", key: "recipes" }}
+      />,
+    );
+    expect(html).toContain(`href="/saves/${save.id}?tag=recipes"`);
+  });
+
   it("says when a save is no longer saved on Instagram, in words and not only with an icon", () => {
     const html = render({ noLongerSavedAt: new Date("2026-11-01T12:00:00Z") });
     expect(text(html)).toContain("No longer saved on Instagram");
