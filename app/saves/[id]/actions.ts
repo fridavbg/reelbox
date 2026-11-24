@@ -18,8 +18,9 @@ const failed: TagResult = { ok: false, error: TAG_SAVE_FAILED };
 
 /**
  * Adds a tag to one of the signed-in user's saves. A tag with the same name
- * in any capitals is reused and keeps its name; otherwise it's created as
- * typed. A tag already on the save is left as it is.
+ * in any capitals is reused and keeps its name, whatever its length;
+ * otherwise it's created as typed, within the length limit for new tags. A
+ * tag already on the save is left as it is.
  *
  * Server Functions can be called by anyone with any arguments, like an API
  * route, so the session and both arguments are checked here.
@@ -47,14 +48,21 @@ export async function addTag(
     if (!post) return failed;
 
     const nameKey = tagKey(input.name);
-    // One query that creates the tag or finds the existing one, so two quick
-    // adds of a new name can't both try to create it.
-    const tag = await db().tag.upsert({
-      where: { userId_nameKey: { userId: user.id, nameKey } },
-      create: { userId: user.id, name: input.name, nameKey },
-      update: {},
-      select: { id: true },
-    });
+    const where = { userId_nameKey: { userId: user.id, nameKey } };
+    let tag = await db().tag.findUnique({ where, select: { id: true } });
+    if (!tag) {
+      // Only a new tag has to fit the length limit.
+      const nameError = tagNameError(input.name);
+      if (nameError) return { ok: false, error: nameError };
+      // Creates the tag or finds it, so two quick adds of a new name can't
+      // both try to create it.
+      tag = await db().tag.upsert({
+        where,
+        create: { userId: user.id, name: input.name, nameKey },
+        update: {},
+        select: { id: true },
+      });
+    }
     await db().postTag.createMany({
       data: [{ postId: post.id, tagId: tag.id }],
       skipDuplicates: true,

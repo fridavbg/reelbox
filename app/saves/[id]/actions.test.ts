@@ -10,6 +10,7 @@ const postId = "00000000-0000-4000-8000-000000000001";
 const tagId = "00000000-0000-4000-8000-000000000002";
 
 const findFirst = vi.fn();
+const findUnique = vi.fn();
 const upsert = vi.fn();
 const createMany = vi.fn();
 const deleteMany = vi.fn();
@@ -20,7 +21,7 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("@/lib/db", () => ({
   db: () => ({
     post: { findFirst },
-    tag: { upsert },
+    tag: { findUnique, upsert },
     postTag: { createMany, deleteMany },
   }),
 }));
@@ -31,6 +32,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "error").mockImplementation(() => {});
   findFirst.mockResolvedValue({ id: postId });
+  findUnique.mockResolvedValue(null);
   upsert.mockResolvedValue({ id: tagId });
 });
 
@@ -69,9 +71,32 @@ describe("addTag", () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
+  it("reuses an existing tag of any length, e.g. one made from a collection", async () => {
+    const long = "Weekend breakfast ideas for the family";
+    findUnique.mockResolvedValue({ id: tagId });
+    expect(await addTag(postId, long)).toEqual({ ok: true });
+    expect(findUnique.mock.calls[0][0].where).toEqual({
+      userId_nameKey: { userId: user.id, nameKey: long.toLowerCase() },
+    });
+    expect(upsert).not.toHaveBeenCalled();
+    expect(createMany).toHaveBeenCalledWith({
+      data: [{ postId, tagId }],
+      skipDuplicates: true,
+    });
+  });
+
+  it("refuses a new tag that's too long, saying why", async () => {
+    expect(await addTag(postId, "a".repeat(31))).toEqual({
+      ok: false,
+      error: TAG_NAME_TOO_LONG,
+    });
+    expect(upsert).not.toHaveBeenCalled();
+    expect(createMany).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["an empty name", "   ", TAG_NAME_EMPTY],
-    ["a name that's too long", "a".repeat(31), TAG_NAME_TOO_LONG],
+    ["a name longer than any tag", "a".repeat(501), TAG_NAME_TOO_LONG],
     ["a name that isn't text", 42, TAG_SAVE_FAILED],
   ])("refuses %s, saying why", async (_, name, error) => {
     expect(await addTag(postId, name)).toEqual({ ok: false, error });
