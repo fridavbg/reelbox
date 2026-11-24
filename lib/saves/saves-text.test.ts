@@ -19,6 +19,15 @@ describe("savesCountText", () => {
     );
   });
 
+  it("falls back to the tag's key without a name", () => {
+    expect(savesCountText(3, { kind: "tag", key: "recipes" })).toBe(
+      "3 saves tagged recipes · newest first",
+    );
+    expect(noMatchTitle({ kind: "tag", key: "recipes" })).toBe(
+      "No saves tagged recipes",
+    );
+  });
+
   it("counts untagged saves", () => {
     expect(savesCountText(380, { kind: "untagged" })).toBe(
       "380 untagged saves · newest first",

@@ -21,6 +21,7 @@ type Props = {
   untaggedCount: number;
 };
 
+/** One chip: where it leads, its label and how many saves it shows. */
 type Chip = { filter: SavesFilter; label: string; count: number };
 
 /**

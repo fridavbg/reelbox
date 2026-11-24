@@ -23,7 +23,8 @@ export const SAVES_LOADING =
  *
  * @param count - How many saves the grid shows in all.
  * @param filter - Which saves the grid shows.
- * @param tagName - The tag's name as the user wrote it, for a tag filter.
+ * @param tagName - The tag's name as the user wrote it, for a tag filter;
+ *   without it, the tag's key from the URL.
  * @returns The line, with "save" or "saves" to match the count.
  */
 export function savesCountText(
@@ -34,7 +35,7 @@ export function savesCountText(
   const saves = count === 1 ? "save" : "saves";
   const which =
     filter.kind === "tag"
-      ? `${saves} tagged ${tagName}`
+      ? `${saves} tagged ${tagName ?? filter.key}`
       : filter.kind === "untagged"
         ? `untagged ${saves}`
         : saves;
@@ -48,7 +49,8 @@ export const SHOW_ALL_SAVES = "Show all saves";
  * The empty state's title when no save matches the filter.
  *
  * @param filter - A tag or untagged filter.
- * @param tagName - The tag's name as the user wrote it, for a tag filter.
+ * @param tagName - The tag's name as the user wrote it, for a tag filter;
+ *   without it, the tag's key from the URL.
  * @returns E.g. "No saves tagged Recipes" or "Every save has a tag".
  */
 export function noMatchTitle(
@@ -56,7 +58,7 @@ export function noMatchTitle(
   tagName?: string,
 ) {
   return filter.kind === "tag"
-    ? `No saves tagged ${tagName}`
+    ? `No saves tagged ${tagName ?? filter.key}`
     : "Every save has a tag";
 }
 
@@ -71,6 +73,9 @@ export function noMatchText(filter: Exclude<SavesFilter, { kind: "all" }>) {
     ? "Add this tag to a save on the save's page to see it here."
     : "Saves without a tag show up here.";
 }
+
+/** The link from a save's page back to the grid. */
+export const BACK_TO_SAVES = "← Back to saves";
 
 /** Shown while a save's own page loads. */
 export const SAVE_LOADING = "Loading this save…";

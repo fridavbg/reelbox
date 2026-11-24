@@ -1,8 +1,8 @@
 import { Clapperboard, ImageIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountActions } from "@/components/AccountActions/AccountActions";
+import { BackToSaves } from "@/components/BackToSaves/BackToSaves";
 import { Layout } from "@/components/Layout/Layout";
 import { NoLongerSavedBadge } from "@/components/NoLongerSavedBadge/NoLongerSavedBadge";
 import { OpenOnInstagram } from "@/components/OpenOnInstagram/OpenOnInstagram";
@@ -41,9 +41,7 @@ export default async function SavePage({ params }: PageProps<"/saves/[id]">) {
   return (
     <Layout actions={<AccountActions demo={isDemo} />}>
       <div className={styles.page}>
-        <Link href="/saves" className={styles.back}>
-          ← Back to saves
-        </Link>
+        <BackToSaves className={styles.back} />
 
         <article className={styles.save}>
           <p className={styles.kind}>

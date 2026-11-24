@@ -11,6 +11,7 @@ import {
   kindText,
   savedOnText,
 } from "@/lib/saves/save-card-text";
+import { saveHref, type SavesFilter } from "@/lib/saves/saves-filter";
 import styles from "./SaveCard.module.scss";
 
 /** The icon next to the kind's word; decorative, the word says the kind. */
@@ -24,6 +25,8 @@ type Props = {
   ref?: Ref<HTMLElement>;
   /** A demo save: its post and creator are invented, so nothing is linked. */
   demo?: boolean;
+  /** The grid's filter, carried to the save's page for its back link. */
+  filter?: SavesFilter;
 };
 
 /**
@@ -36,11 +39,17 @@ type Props = {
  * screen readers; CSS shows the kind and caption above it. The heading is
  * the display name, or the username when there's none.
  *
- * @param props - The save, the time zone for its saved date, a ref, and
- *   whether it's a demo save.
+ * @param props - The save, the time zone for its saved date, a ref,
+ *   whether it's a demo save, and the grid's filter.
  * @returns The card.
  */
-export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
+export function SaveCard({
+  save,
+  timeZone,
+  ref,
+  demo = false,
+  filter = { kind: "all" },
+}: Props) {
   const KindIcon = kindIcons[save.kind];
   const username = `@${save.creatorUsername}`;
 
@@ -51,7 +60,7 @@ export function SaveCard({ save, timeZone, ref, demo = false }: Props) {
       <h2 className={styles.creator}>
         {/* Stretched over the whole card by CSS, so tapping anywhere on it
             opens the save's page. */}
-        <Link href={`/saves/${save.id}`} className={styles.cardLink}>
+        <Link href={saveHref(save.id, filter)} className={styles.cardLink}>
           {save.creatorName || username}
           <span className={styles.hidden}>{EDIT_TAGS_CONTEXT}</span>
         </Link>

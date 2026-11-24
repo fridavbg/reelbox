@@ -81,6 +81,7 @@ export function SaveList({
               timeZone={timeZone}
               ref={index === firstNew ? firstNewRef : undefined}
               demo={demo}
+              filter={filter}
             />
           </li>
         ))}

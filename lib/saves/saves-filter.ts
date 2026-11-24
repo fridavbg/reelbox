@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
-import { tagKey, tagNameError, type UserTag } from "@/lib/tags";
+import { MAX_TEXT_LENGTH } from "@/lib/import/import-settings";
+import { tagKey, type UserTag } from "@/lib/tags";
 
 /**
  * Which saves the grid shows: all of them, those with one tag (by its key,
@@ -9,13 +10,25 @@ import { tagKey, tagNameError, type UserTag } from "@/lib/tags";
 export type SavesFilter =
   { kind: "all" } | { kind: "tag"; key: string } | { kind: "untagged" };
 
+/** The filter when the URL has none: every save. */
 const ALL: SavesFilter = { kind: "all" };
 
-/** A tag key as `tagKey` writes it, for a name the tag form would accept. */
+/**
+ * Longest tag key a URL may hold. Tags made from Instagram collections can
+ * be as long as the import allows a collection name, longer than a typed
+ * tag, and lowercasing can make a key up to twice as long ("İ" becomes two
+ * characters).
+ */
+const MAX_TAG_KEY_LENGTH = 2 * MAX_TEXT_LENGTH;
+
+/** A tag key as `tagKey` writes it: trimmed, lowercased and not empty. */
 const tagKeySchema = z
   .string()
-  .refine((key) => key === tagKey(key) && !tagNameError(key));
+  .min(1)
+  .max(MAX_TAG_KEY_LENGTH)
+  .refine((key) => key === tagKey(key));
 
+/** A filter sent by the browser, checked before it reaches a query. */
 const savesFilterSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("all") }),
   z.object({ kind: z.literal("tag"), key: tagKeySchema }),
@@ -77,20 +90,59 @@ export function filterWhere(
 }
 
 /**
+ * The query string that holds a filter, read back by
+ * {@link filterFromSearchParams}.
+ *
+ * @param filter - Which saves to show.
+ * @returns E.g. "", "?tag=recipes" or "?untagged=1".
+ */
+function filterSearch(filter: SavesFilter) {
+  switch (filter.kind) {
+    case "all":
+      return "";
+    case "tag":
+      return `?${new URLSearchParams({ tag: filter.key })}`;
+    case "untagged":
+      return "?untagged=1";
+  }
+}
+
+/**
  * The saves page's address for a filter, for links to it.
  *
  * @param filter - Which saves to show.
  * @returns E.g. "/saves", "/saves?tag=recipes" or "/saves?untagged=1".
  */
 export function filterHref(filter: SavesFilter) {
-  switch (filter.kind) {
-    case "all":
-      return "/saves";
-    case "tag":
-      return `/saves?${new URLSearchParams({ tag: filter.key })}`;
-    case "untagged":
-      return "/saves?untagged=1";
+  return `/saves${filterSearch(filter)}`;
+}
+
+/**
+ * A save's page, carrying the grid's filter along so its "Back to saves"
+ * link returns to the same filtered grid.
+ *
+ * @param id - The save's id.
+ * @param filter - The filter the grid shows.
+ * @returns E.g. "/saves/<id>?tag=recipes".
+ */
+export function saveHref(id: string, filter: SavesFilter) {
+  return `/saves/${id}${filterSearch(filter)}`;
+}
+
+/**
+ * Reads the filter from a URL's search params in the browser, the way the
+ * server reads `searchParams`: a repeated name becomes a list.
+ *
+ * @param params - The URL's search params.
+ * @returns The filter; all saves if there's none.
+ */
+export function filterFromURLSearchParams(params: URLSearchParams) {
+  const record: Record<string, string | string[]> = {};
+  for (const name of new Set(params.keys())) {
+    const values = params.getAll(name);
+    record[name] = values.length === 1 ? values[0] : values;
   }
+  return filterFromSearchParams(record);
 }
 
 /**
