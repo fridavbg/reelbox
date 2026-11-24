@@ -1,0 +1,77 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+@use "../../styles/accessibility" as *;
+@use "../../styles/breakpoints" as *;
+
+$chip-height: 36px;
+
+// One row that scrolls sideways on small screens; wraps from tablet up.
+.chips {
+  display: flex;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  // Room for the focus ring, which the scroll area would otherwise cut off.
+  padding-block: $space-1;
+
+  @include respond-to(tablet) {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+
+  li {
+    flex: none;
+  }
+}
+
+// The link is 44px tall for tapping; the chip inside it is 36px.
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: $touch-target;
+  text-decoration: none;
+  border-radius: $radius-pill;
+}
+
+.chip {
+  display: inline-flex;
+  gap: $space-1;
+  align-items: center;
+  height: $chip-height;
+  padding: 0 $space-4;
+  @include text-style(small);
+  color: $color-ink;
+  white-space: nowrap;
+  background: $color-surface;
+  border: 1px solid $color-line-strong;
+  border-radius: $radius-pill;
+
+  .link:hover & {
+    background: $color-accent-soft;
+  }
+
+  // The current chip: filled amber with ink text, and a check mark.
+  .link[aria-current="page"] & {
+    @include text-style(label);
+    background: $color-accent;
+    border-color: $color-accent;
+  }
+}
+
+.check {
+  margin-left: -$space-1;
+}
+
+.count {
+  color: $color-ink-muted;
+
+  .link[aria-current="page"] & {
+    color: $color-ink;
+  }
+}
+
+.countWords {
+  @include visually-hidden;
+}
