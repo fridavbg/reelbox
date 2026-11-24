@@ -89,12 +89,12 @@ Versions follow semantic versioning: `MAJOR.MINOR.PATCH`. Each version = a GitHu
 4. Add/remove tags; filter by tag
 5. Tag suggestions (by creator, by Instagram collection)
 6. "No longer saved on Instagram" badge
+7. Demo: try the import with a sample export (#42)
 
 ### v1.x – Useful, can wait
 
 - Search
 - Bulk tagging
-- Demo: try the import with a sample export (#42)
 
 ### v2.0 – Future possibilities
 
