@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { offline } from "@/test/offline";
 import { DEMO_FAILED } from "@/lib/sign-in-messages";
 
 const anonymous = vi.fn();
@@ -15,7 +16,7 @@ const { DemoButton } = await import("./DemoButton");
 
 describe("DemoButton when the connection drops", () => {
   it("says so, stays on the page, and the button works again", async () => {
-    anonymous.mockRejectedValue(new TypeError("Failed to fetch"));
+    anonymous.mockImplementation(offline);
     render(<DemoButton />);
     fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
 

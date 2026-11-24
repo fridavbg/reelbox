@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { offline } from "@/test/offline";
 
 const signOut = vi.fn();
 const deleteAnonymousUser = vi.fn();
@@ -12,8 +13,6 @@ vi.mock("@/lib/auth-client", () => ({
 }));
 
 const { SignOutButton } = await import("./SignOutButton");
-
-const offline = () => Promise.reject(new TypeError("Failed to fetch"));
 
 beforeEach(() => {
   vi.clearAllMocks();
