@@ -1,0 +1,21 @@
+@use "../../styles/variables" as *;
+@use "../../styles/typography" as *;
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  align-items: center;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: $space-8 0;
+  text-align: center;
+}
+
+.title {
+  @include text-style(heading);
+}
+
+.text {
+  color: $color-ink-muted;
+}

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
-import { tagKey, tagNameError } from "@/lib/tags";
+import { tagKey, tagNameError, type UserTag } from "@/lib/tags";
 
 /**
  * Which saves the grid shows: all of them, those with one tag (by its key,
@@ -90,5 +90,35 @@ export function filterHref(filter: SavesFilter) {
       return `/saves?${new URLSearchParams({ tag: filter.key })}`;
     case "untagged":
       return "/saves?untagged=1";
+  }
+}
+
+/**
+ * How many saves the filter shows, and for a tag, its name as the user
+ * wrote it, for the line above the grid and the empty state. Worked out
+ * from counts the page already has, so it needs no query of its own.
+ *
+ * @param filter - Which saves to show.
+ * @param tags - All the user's tags with their counts.
+ * @param totalCount - How many saves the user has.
+ * @param untaggedCount - How many of them have no tag.
+ * @returns The count, and the tag's name; a tag the user doesn't have is
+ *   named by its key, with no saves.
+ */
+export function filterSummary(
+  filter: SavesFilter,
+  tags: UserTag[],
+  totalCount: number,
+  untaggedCount: number,
+): { count: number; tagName?: string } {
+  switch (filter.kind) {
+    case "all":
+      return { count: totalCount };
+    case "untagged":
+      return { count: untaggedCount };
+    case "tag": {
+      const tag = tags.find((tag) => tagKey(tag.name) === filter.key);
+      return { count: tag?.count ?? 0, tagName: tag?.name ?? filter.key };
+    }
   }
 }

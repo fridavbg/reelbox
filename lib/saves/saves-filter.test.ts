@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   filterFromSearchParams,
+  filterSummary,
   filterHref,
   filterWhere,
   parseSavesFilter,
@@ -102,5 +103,32 @@ describe("filterHref", () => {
       new URL(filterHref(filter), "http://x").searchParams,
     );
     expect(filterFromSearchParams(params)).toEqual(filter);
+  });
+});
+
+describe("filterSummary", () => {
+  const tags = [
+    { name: "Recipes", count: 12 },
+    { name: "Travel", count: 0 },
+  ];
+  const summary = (filter: SavesFilter) => filterSummary(filter, tags, 20, 6);
+
+  it("counts all saves", () => {
+    expect(summary(all)).toEqual({ count: 20 });
+  });
+
+  it("counts untagged saves", () => {
+    expect(summary(untagged)).toEqual({ count: 6 });
+  });
+
+  it("counts the tag's saves and names it as the user wrote it", () => {
+    expect(summary(recipes)).toEqual({ count: 12, tagName: "Recipes" });
+  });
+
+  it("names a tag the user doesn't have by its key, with no saves", () => {
+    expect(summary({ kind: "tag", key: "nope" })).toEqual({
+      count: 0,
+      tagName: "nope",
+    });
   });
 });
