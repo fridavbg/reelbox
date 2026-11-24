@@ -4,12 +4,18 @@ import { buttonClassName } from "@/components/Button/Button";
 import { AccountActions } from "@/components/AccountActions/AccountActions";
 import { Layout } from "@/components/Layout/Layout";
 import { SaveList } from "@/components/SaveList/SaveList";
+import { TagFilter } from "@/components/TagFilter/TagFilter";
 import { db } from "@/lib/db";
 import { DEMO_LIFETIME_HOURS } from "@/lib/demo/demo-settings";
 import { DEMO_CANT_IMPORT } from "@/lib/import/import-messages";
 import { EXPORT_STEPS_ID } from "@/lib/import/import-settings";
+import { listTags } from "@/lib/saves/get-save";
 import { listSaves } from "@/lib/saves/list-saves";
-import { filterFromSearchParams, filterHref } from "@/lib/saves/saves-filter";
+import {
+  filterFromSearchParams,
+  filterHref,
+  filterWhere,
+} from "@/lib/saves/saves-filter";
 import {
   NO_SAVES_TEXT,
   NO_SAVES_TITLE,
@@ -32,8 +38,12 @@ export default async function SavesPage({ searchParams }: PageProps<"/saves">) {
   const filter = filterFromSearchParams(await searchParams);
   const user = await requireUser();
   const isDemo = Boolean(user.isAnonymous);
-  const [saveCount, firstPage] = await Promise.all([
+  const [saveCount, untaggedCount, tags, firstPage] = await Promise.all([
     db().post.count({ where: { userId: user.id } }),
+    db().post.count({
+      where: { userId: user.id, ...filterWhere({ kind: "untagged" }, user.id) },
+    }),
+    listTags(user.id),
     listSaves(user.id, filter),
   ]);
 
@@ -70,6 +80,12 @@ export default async function SavesPage({ searchParams }: PageProps<"/saves">) {
             )}
             <p className={styles.count}>{savesCountText(saveCount)}</p>
           </div>
+          <TagFilter
+            filter={filter}
+            tags={tags}
+            totalCount={saveCount}
+            untaggedCount={untaggedCount}
+          />
           <SaveList
             // A new filter starts a new list, so no saves or cursor carry over.
             key={filterHref(filter)}

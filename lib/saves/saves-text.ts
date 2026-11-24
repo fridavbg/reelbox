@@ -47,3 +47,19 @@ export function collectionsText(names: string[]) {
   const word = names.length === 1 ? "collection" : "collections";
   return `Instagram ${word}: ${names.join(", ")}`;
 }
+
+/** The tag filter above the grid: its name, and its first two choices. */
+export const TAG_FILTER_LABEL = "Filter by tag";
+export const ALL_SAVES = "All";
+export const UNTAGGED_SAVES = "Untagged";
+
+/**
+ * The words read after a filter chip's count, e.g. " saves" in "Recipes 12
+ * saves"; hidden on screen, where the number alone is clear.
+ *
+ * @param count - How many saves the chip leads to.
+ * @returns " save" or " saves", to match the count.
+ */
+export function chipCountWords(count: number) {
+  return count === 1 ? " save" : " saves";
+}
