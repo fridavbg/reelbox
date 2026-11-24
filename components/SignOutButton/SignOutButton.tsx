@@ -17,15 +17,15 @@ export function SignOutButton({ demo = false }: Props) {
 
   async function signOut() {
     setLoading(true);
+    const succeeded = async (call: () => Promise<{ error: unknown }>) =>
+      !(await authCall(call)).error;
     // Leaving the demo deletes it; if that fails, a plain sign-out still
     // ends the session, and the cleanup removes the demo later.
-    const deleted = demo
-      ? !(await authCall(() => authClient.deleteAnonymousUser())).error
-      : false;
-    const signedOut =
-      deleted || !(await authCall(() => authClient.signOut())).error;
+    const ended =
+      (demo && (await succeeded(() => authClient.deleteAnonymousUser()))) ||
+      (await succeeded(() => authClient.signOut()));
     // Still signed in, e.g. offline: stay, so the button can be tried again.
-    if (!signedOut) {
+    if (!ended) {
       setLoading(false);
       return;
     }
