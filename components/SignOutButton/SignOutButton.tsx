@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/Button/Button";
+import { authCall } from "@/lib/auth-call";
 import { authClient } from "@/lib/auth-client";
 
 type Props = {
@@ -16,12 +17,17 @@ export function SignOutButton({ demo = false }: Props) {
 
   async function signOut() {
     setLoading(true);
-    if (demo) {
-      const { error } = await authClient.deleteAnonymousUser();
-      // If deleting fails, still sign out; the cleanup removes it later.
-      if (error) await authClient.signOut();
-    } else {
-      await authClient.signOut();
+    // Leaving the demo deletes it; if that fails, a plain sign-out still
+    // ends the session, and the cleanup removes the demo later.
+    const deleted = demo
+      ? !(await authCall(() => authClient.deleteAnonymousUser())).error
+      : false;
+    const signedOut =
+      deleted || !(await authCall(() => authClient.signOut())).error;
+    // Still signed in, e.g. offline: stay, so the button can be tried again.
+    if (!signedOut) {
+      setLoading(false);
+      return;
     }
     router.push("/");
   }
