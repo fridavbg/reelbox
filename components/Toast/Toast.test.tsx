@@ -19,6 +19,13 @@ describe("Toast", () => {
     expect(html).toMatch(/<button[^>]*type="button"[^>]*>Undo<\/button>/);
   });
 
+  it("has a dismiss button when it can be dismissed", () => {
+    const html = renderToStaticMarkup(
+      <Toast message="Removed Recipes" onDismiss={() => {}} />,
+    );
+    expect(html).toMatch(/<button[^>]*type="button"[^>]*aria-label="Dismiss"/);
+  });
+
   it("has no button when there's no action", () => {
     const html = renderToStaticMarkup(<Toast message="Saved" />);
     expect(html).toContain("Saved");
