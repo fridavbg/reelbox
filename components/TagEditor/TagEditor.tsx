@@ -120,13 +120,14 @@ export function TagEditor({ postId, tags, userTags }: Props) {
   /**
    * Shows the tag on the save at once, clears the field and puts focus in
    * it (a tapped tag's or Undo's button goes away), then saves it. If that
-   * fails, the tag disappears again, and a typed name comes back in the
-   * field.
+   * fails, the tag disappears again, and it comes back where it came from
+   * so it can be tried again: a typed name in the field, an undo in the
+   * toast. A tapped tag is offered again by itself.
    *
    * @param tagName - The name typed, the tag tapped, or the tag to undo.
-   * @param typed - Whether it was typed in the field.
+   * @param from - Where the tag came from.
    */
-  function add(tagName: string, typed = false) {
+  function add(tagName: string, from: "field" | "offered" | "undo") {
     setError(undefined);
     setRemoved(undefined);
     setName("");
@@ -136,7 +137,9 @@ export function TagEditor({ postId, tags, userTags }: Props) {
       const result = await saveTag(() => addTag(postId, tagName));
       if (!result.ok) {
         setError(result.error);
-        if (typed) setName((current) => current || tagName);
+        if (from === "field") setName((current) => current || tagName);
+        // Unless a later removal has taken the toast meanwhile.
+        if (from === "undo") setRemoved((current) => current ?? tagName);
       }
     });
   }
@@ -145,7 +148,7 @@ export function TagEditor({ postId, tags, userTags }: Props) {
     event.preventDefault();
     const invalid = tagNameError(name);
     setNameError(invalid);
-    if (!invalid) add(name, true);
+    if (!invalid) add(name, "field");
   }
 
   function handleRemove(tag: Tag, index: number) {
@@ -220,7 +223,10 @@ export function TagEditor({ postId, tags, userTags }: Props) {
           <ul className={styles.list} aria-labelledby={offeredId}>
             {offered.map((tagName) => (
               <li key={tagName}>
-                <TagChip label={tagName} onAdd={() => add(tagName)} />
+                <TagChip
+                  label={tagName}
+                  onAdd={() => add(tagName, "offered")}
+                />
               </li>
             ))}
           </ul>
@@ -240,8 +246,15 @@ export function TagEditor({ postId, tags, userTags }: Props) {
       <Toast
         message={removed && removedTagText(removed)}
         action={
-          removed ? { label: UNDO, onClick: () => add(removed) } : undefined
+          removed
+            ? { label: UNDO, onClick: () => add(removed, "undo") }
+            : undefined
         }
+        onDismiss={() => {
+          setRemoved(undefined);
+          // The × goes away with the toast; the field is where tagging goes on.
+          inputRef.current?.focus();
+        }}
       />
     </div>
   );
