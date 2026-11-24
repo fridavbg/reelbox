@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { offline } from "@/test/offline";
 import { SEND_FAILED, SIGN_IN_CONNECTION_FAILED } from "@/lib/sign-in-messages";
 
 const sendVerificationOtp = vi.fn();
@@ -16,8 +17,6 @@ vi.mock("@/lib/auth-client", () => ({
 }));
 
 const { SignInForm } = await import("./SignInForm");
-
-const offline = () => Promise.reject(new TypeError("Failed to fetch"));
 
 /** Fills in the email and sends the code; the code step shows after. */
 async function sendCode() {
