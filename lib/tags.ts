@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { MAX_TEXT_LENGTH } from "./import/import-settings";
-import { MAX_TAG_LENGTH } from "./tag-settings";
+import { MAX_IMPORTED_TAG_LENGTH, MAX_TAG_LENGTH } from "./tag-settings";
 import { TAG_NAME_EMPTY, TAG_NAME_TOO_LONG } from "./tags-text";
 
 /**
@@ -14,9 +13,9 @@ export const tagKey = (name: string) => name.trim().toLowerCase();
 
 /**
  * Checks a tag name as typed. Shared by the tag form and the server, so
- * both accept the same names. The length limit is only for new tags: tags
- * made from Instagram collections keep the collection's full name, and
- * must stay usable on other saves.
+ * both accept the same names. New tags have a short limit; an existing tag
+ * may be one made from an Instagram collection, which keeps the
+ * collection's full name and must stay usable on other saves.
  *
  * @param name - The name as typed; surrounding spaces don't count.
  * @param options - `existing`: the user already has a tag with this name.
@@ -26,7 +25,8 @@ export function tagNameError(name: string, { existing = false } = {}) {
   // Spread into characters, so an emoji counts as one, not two.
   const length = [...name.trim()].length;
   if (length === 0) return TAG_NAME_EMPTY;
-  if (!existing && length > MAX_TAG_LENGTH) return TAG_NAME_TOO_LONG;
+  const limit = existing ? MAX_IMPORTED_TAG_LENGTH : MAX_TAG_LENGTH;
+  if (length > limit) return TAG_NAME_TOO_LONG;
   return undefined;
 }
 
@@ -84,11 +84,13 @@ export function mostUsedTags(tags: UserTag[], onSave: string[]) {
 }
 
 /**
- * A name that could be one of the user's tags. The 30-character limit for
- * new tags is checked once it's known whether the tag exists; the upper
- * bound is the longest collection name an import accepts.
+ * A name that could be one of the user's tags. The limit for new tags is
+ * checked once it's known whether the tag exists.
  */
-const tagNameSchema = z.string().trim().min(1).max(MAX_TEXT_LENGTH);
+const tagNameSchema = z
+  .string()
+  .trim()
+  .refine((name) => !tagNameError(name, { existing: true }));
 
 /**
  * Checks what the browser sent to add a tag. Server Functions can be called

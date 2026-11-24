@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_TAG_LENGTH } from "./tag-settings";
+import { MAX_IMPORTED_TAG_LENGTH, MAX_TAG_LENGTH } from "./tag-settings";
 import {
   matchingTags,
   mostUsedTags,
@@ -29,8 +29,12 @@ describe("tagNameError", () => {
     expect(tagNameError("a".repeat(30))).toBeUndefined();
   });
 
-  it("accepts an existing tag's name of any length", () => {
-    expect(tagNameError("a".repeat(31), { existing: true })).toBeUndefined();
+  it("accepts an existing tag's name up to the longest an import creates", () => {
+    expect(MAX_IMPORTED_TAG_LENGTH).toBe(500);
+    expect(tagNameError("a".repeat(500), { existing: true })).toBeUndefined();
+    expect(tagNameError("a".repeat(501), { existing: true })).toBe(
+      TAG_NAME_TOO_LONG,
+    );
     expect(tagNameError("   ", { existing: true })).toBe(TAG_NAME_EMPTY);
   });
 

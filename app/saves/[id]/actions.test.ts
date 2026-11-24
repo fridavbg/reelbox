@@ -103,13 +103,19 @@ describe("addTag", () => {
     expect(findFirst).not.toHaveBeenCalled();
   });
 
-  it("refuses a post id that isn't a UUID, without asking the database", async () => {
-    expect(await addTag("abc", "Weeknight")).toEqual({
-      ok: false,
-      error: TAG_SAVE_FAILED,
-    });
-    expect(findFirst).not.toHaveBeenCalled();
-  });
+  it.each([
+    ["a short name", "Weeknight"],
+    ["a name that may be an existing tag's", "a".repeat(31)],
+  ])(
+    "refuses a post id that isn't a UUID with %s, without asking the database",
+    async (_, name) => {
+      expect(await addTag("abc", name)).toEqual({
+        ok: false,
+        error: TAG_SAVE_FAILED,
+      });
+      expect(findFirst).not.toHaveBeenCalled();
+    },
+  );
 
   it("answers with a message when the database fails", async () => {
     upsert.mockRejectedValue(new Error("connection lost"));

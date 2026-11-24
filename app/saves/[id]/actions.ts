@@ -36,7 +36,12 @@ export async function addTag(
   const user = await requireUser();
   const input = parseAddTagInput(postId, name);
   if (!input) {
-    const nameError = typeof name === "string" ? tagNameError(name) : undefined;
+    // Only a name no tag can have is the user's to fix; anything else is a
+    // broken request.
+    const nameError =
+      typeof name === "string"
+        ? tagNameError(name, { existing: true })
+        : undefined;
     return nameError ? { ok: false, error: nameError } : failed;
   }
 
