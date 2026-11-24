@@ -3,6 +3,7 @@ import Link from "next/link";
 import { buttonClassName } from "@/components/Button/Button";
 import { AccountActions } from "@/components/AccountActions/AccountActions";
 import { Layout } from "@/components/Layout/Layout";
+import { NoMatchingSaves } from "@/components/NoMatchingSaves/NoMatchingSaves";
 import { SaveList } from "@/components/SaveList/SaveList";
 import { TagFilter } from "@/components/TagFilter/TagFilter";
 import { db } from "@/lib/db";
@@ -14,6 +15,7 @@ import { listSaves } from "@/lib/saves/list-saves";
 import {
   filterFromSearchParams,
   filterHref,
+  filterSummary,
   filterWhere,
 } from "@/lib/saves/saves-filter";
 import {
@@ -46,6 +48,8 @@ export default async function SavesPage({ searchParams }: PageProps<"/saves">) {
     listTags(user.id),
     listSaves(user.id, filter),
   ]);
+  const shown = filterSummary(filter, tags, saveCount, untaggedCount);
+  const noMatch = filter.kind !== "all" && firstPage.saves.length === 0;
 
   return (
     <Layout actions={<AccountActions demo={isDemo} />}>
@@ -78,7 +82,11 @@ export default async function SavesPage({ searchParams }: PageProps<"/saves">) {
                 <p className={styles.text}>{DEMO_CANT_IMPORT}</p>
               </>
             )}
-            <p className={styles.count}>{savesCountText(saveCount)}</p>
+            {!noMatch && (
+              <p className={styles.count}>
+                {savesCountText(shown.count, filter, shown.tagName)}
+              </p>
+            )}
           </div>
           <TagFilter
             filter={filter}
@@ -86,14 +94,18 @@ export default async function SavesPage({ searchParams }: PageProps<"/saves">) {
             totalCount={saveCount}
             untaggedCount={untaggedCount}
           />
-          <SaveList
-            // A new filter starts a new list, so no saves or cursor carry over.
-            key={filterHref(filter)}
-            filter={filter}
-            initialSaves={firstPage.saves}
-            initialCursor={firstPage.nextCursor}
-            demo={isDemo}
-          />
+          {noMatch ? (
+            <NoMatchingSaves filter={filter} tagName={shown.tagName} />
+          ) : (
+            <SaveList
+              // A new filter starts a new list, so no saves or cursor carry over.
+              key={filterHref(filter)}
+              filter={filter}
+              initialSaves={firstPage.saves}
+              initialCursor={firstPage.nextCursor}
+              demo={isDemo}
+            />
+          )}
         </div>
       )}
     </Layout>

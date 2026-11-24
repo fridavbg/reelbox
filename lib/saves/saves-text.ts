@@ -1,3 +1,5 @@
+import type { SavesFilter } from "./saves-filter";
+
 /** Empty state: the user has no saves yet. */
 export const NO_SAVES_TITLE = "No saves yet";
 export const NO_SAVES_TEXT =
@@ -16,13 +18,58 @@ export const SAVES_LOADING =
   "Loading your saves… The first visit after a quiet spell can take a few seconds.";
 
 /**
- * The line above the grid, e.g. "412 saves · newest first".
+ * The line above the grid, e.g. "412 saves · newest first", "12 saves
+ * tagged Recipes · newest first" or "380 untagged saves · newest first".
  *
- * @param count - How many saves the user has.
+ * @param count - How many saves the grid shows in all.
+ * @param filter - Which saves the grid shows.
+ * @param tagName - The tag's name as the user wrote it, for a tag filter.
  * @returns The line, with "save" or "saves" to match the count.
  */
-export function savesCountText(count: number) {
-  return `${count} ${count === 1 ? "save" : "saves"} · newest first`;
+export function savesCountText(
+  count: number,
+  filter: SavesFilter,
+  tagName?: string,
+) {
+  const saves = count === 1 ? "save" : "saves";
+  const which =
+    filter.kind === "tag"
+      ? `${saves} tagged ${tagName}`
+      : filter.kind === "untagged"
+        ? `untagged ${saves}`
+        : saves;
+  return `${count} ${which} · newest first`;
+}
+
+/** Empty state: no save matches the filter; links back to all saves. */
+export const SHOW_ALL_SAVES = "Show all saves";
+
+/**
+ * The empty state's title when no save matches the filter.
+ *
+ * @param filter - A tag or untagged filter.
+ * @param tagName - The tag's name as the user wrote it, for a tag filter.
+ * @returns E.g. "No saves tagged Recipes" or "Every save has a tag".
+ */
+export function noMatchTitle(
+  filter: Exclude<SavesFilter, { kind: "all" }>,
+  tagName?: string,
+) {
+  return filter.kind === "tag"
+    ? `No saves tagged ${tagName}`
+    : "Every save has a tag";
+}
+
+/**
+ * The empty state's text when no save matches the filter.
+ *
+ * @param filter - A tag or untagged filter.
+ * @returns What would make saves show up here.
+ */
+export function noMatchText(filter: Exclude<SavesFilter, { kind: "all" }>) {
+  return filter.kind === "tag"
+    ? "Add this tag to a save on the save's page to see it here."
+    : "Saves without a tag show up here.";
 }
 
 /** Shown while a save's own page loads. */
