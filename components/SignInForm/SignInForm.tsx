@@ -6,6 +6,7 @@ import { Alert } from "@/components/Alert/Alert";
 import { Button } from "@/components/Button/Button";
 import { DemoButton } from "@/components/DemoButton/DemoButton";
 import { TextInput } from "@/components/TextInput/TextInput";
+import { authCall } from "@/lib/auth-call";
 import { authClient } from "@/lib/auth-client";
 import {
   RATE_LIMITED,
@@ -31,10 +32,12 @@ export function SignInForm() {
   const [attemptsLeft, setAttemptsLeft] = useState(ALLOWED_ATTEMPTS);
 
   async function sendCode(): Promise<boolean> {
-    const { error: sendError } = await authClient.emailOtp.sendVerificationOtp({
-      email: email.trim(),
-      type: "sign-in",
-    });
+    const { error: sendError } = await authCall(() =>
+      authClient.emailOtp.sendVerificationOtp({
+        email: email.trim(),
+        type: "sign-in",
+      }),
+    );
     if (sendError) {
       setError(sendError.status === 429 ? RATE_LIMITED : SEND_FAILED);
       return false;
@@ -65,10 +68,9 @@ export function SignInForm() {
     if (invalid) return;
 
     setLoading(true);
-    const { error: signInError } = await authClient.signIn.emailOtp({
-      email: email.trim(),
-      otp: code.trim(),
-    });
+    const { error: signInError } = await authCall(() =>
+      authClient.signIn.emailOtp({ email: email.trim(), otp: code.trim() }),
+    );
     if (!signInError) {
       router.push("/saves");
       return;

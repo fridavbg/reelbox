@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert } from "@/components/Alert/Alert";
 import { Button } from "@/components/Button/Button";
+import { authCall } from "@/lib/auth-call";
 import { authClient } from "@/lib/auth-client";
 import { DEMO_LIFETIME_HOURS } from "@/lib/demo/demo-settings";
 import { DEMO_FAILED, RATE_LIMITED } from "@/lib/sign-in-messages";
@@ -18,7 +19,9 @@ export function DemoButton() {
   async function startDemo() {
     setLoading(true);
     setError(undefined);
-    const { error: demoError } = await authClient.signIn.anonymous();
+    const { error: demoError } = await authCall(() =>
+      authClient.signIn.anonymous(),
+    );
     if (!demoError) {
       router.push("/saves");
       return;

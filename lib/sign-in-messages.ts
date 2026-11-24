@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NETWORK_ERROR } from "./auth-call";
 import { CODE_VALID_MINUTES } from "./sign-in-settings";
 
 const emailSchema = z.email();
@@ -23,6 +24,9 @@ export const SEND_FAILED =
   "We couldn't send the code. Check your connection and try again.";
 export const DEMO_FAILED =
   "We couldn't start the demo. Check your connection and try again.";
+/** Signing in with a code didn't reach the server. */
+export const SIGN_IN_CONNECTION_FAILED =
+  "We couldn't sign you in. Check your connection and try again.";
 
 type SignInFailure = { code?: string; status?: number };
 
@@ -42,6 +46,8 @@ export function signInErrorMessage(
       return `That code has expired; codes work for ${CODE_VALID_MINUTES} minutes. Send a new code to continue.`;
     case "TOO_MANY_ATTEMPTS":
       return tooManyAttempts;
+    case NETWORK_ERROR:
+      return SIGN_IN_CONNECTION_FAILED;
     default:
       return "Something went wrong signing you in. Try again.";
   }

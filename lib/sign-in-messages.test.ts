@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   RATE_LIMITED,
+  SIGN_IN_CONNECTION_FAILED,
   codeError,
   emailError,
   signInErrorMessage,
@@ -55,5 +56,16 @@ describe("signInErrorMessage", () => {
 
   it("explains the rate limit", () => {
     expect(signInErrorMessage({ status: 429 }, 3)).toBe(RATE_LIMITED);
+  });
+});
+
+describe("signInErrorMessage for a lost connection", () => {
+  it("asks to check the connection", () => {
+    expect(signInErrorMessage({ code: "NETWORK_ERROR", status: 0 }, 3)).toBe(
+      SIGN_IN_CONNECTION_FAILED,
+    );
+    expect(SIGN_IN_CONNECTION_FAILED).toBe(
+      "We couldn't sign you in. Check your connection and try again.",
+    );
   });
 });
