@@ -9,8 +9,10 @@ export default defineConfig({
   test: {
     include: ["**/*.test.ts", "**/*.test.tsx"],
     exclude: ["node_modules", ".next", "e2e"],
-    // Component tests that click and type opt in to a browser-like DOM
-    // with `// @vitest-environment jsdom`; the rest run in plain Node.
+    // Tests run in plain Node. Component tests that click and type opt in
+    // to a browser-like DOM with `// @vitest-environment jsdom` at the top.
+    environment: "node",
+    // Cleans up after each test that rendered a component.
     setupFiles: ["./test/setup.ts"],
   },
 });
