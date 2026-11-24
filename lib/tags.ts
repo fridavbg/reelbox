@@ -30,6 +30,20 @@ export function tagNameError(name: string, { existing = false } = {}) {
   return undefined;
 }
 
+/**
+ * Checks the name typed in the tag field. One of the user's own tags is
+ * accepted at any length, as the server does.
+ *
+ * @param name - The name as typed.
+ * @param userTags - All the user's tags.
+ * @returns The message to show, or undefined if the name is fine.
+ */
+export function tagFieldError(name: string, userTags: UserTag[]) {
+  const key = tagKey(name);
+  const existing = userTags.some((tag) => tagKey(tag.name) === key);
+  return tagNameError(name, { existing });
+}
+
 /** Most tags offered below the tag field at once, matching or most used. */
 const MAX_OFFERED_TAGS = 6;
 

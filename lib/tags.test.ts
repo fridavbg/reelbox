@@ -5,6 +5,7 @@ import {
   mostUsedTags,
   parseAddTagInput,
   parseRemoveTagInput,
+  tagFieldError,
   tagKey,
   tagNameError,
 } from "./tags";
@@ -50,6 +51,26 @@ describe("tagNameError", () => {
 
   it("ignores surrounding spaces when counting", () => {
     expect(tagNameError(`  ${"a".repeat(30)}  `)).toBeUndefined();
+  });
+});
+
+describe("tagFieldError", () => {
+  const long = "Weekend breakfast ideas for the family";
+  const userTags = [
+    { name: long, count: 3 },
+    { name: "Recipes", count: 9 },
+  ];
+
+  it("accepts the name of one of the user's long tags, in any capitals", () => {
+    expect(tagFieldError(` ${long.toUpperCase()} `, userTags)).toBeUndefined();
+  });
+
+  it("refuses a new name that's too long", () => {
+    expect(tagFieldError(`${long}!`, userTags)).toBe(TAG_NAME_TOO_LONG);
+  });
+
+  it("refuses an empty name", () => {
+    expect(tagFieldError("  ", userTags)).toBe(TAG_NAME_EMPTY);
   });
 });
 
