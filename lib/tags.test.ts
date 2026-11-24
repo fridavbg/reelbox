@@ -29,6 +29,11 @@ describe("tagNameError", () => {
     expect(tagNameError("a".repeat(30))).toBeUndefined();
   });
 
+  it("accepts an existing tag's name of any length", () => {
+    expect(tagNameError("a".repeat(31), { existing: true })).toBeUndefined();
+    expect(tagNameError("   ", { existing: true })).toBe(TAG_NAME_EMPTY);
+  });
+
   it("refuses a name of 31 characters, saying what the limit is", () => {
     expect(tagNameError("a".repeat(31))).toBe(TAG_NAME_TOO_LONG);
     expect(TAG_NAME_TOO_LONG).toBe("Tag names can be at most 30 characters.");
@@ -52,13 +57,18 @@ describe("parseAddTagInput", () => {
     });
   });
 
+  it("returns a name longer than a new tag allows: it may be an existing tag's", () => {
+    const name = "a".repeat(500);
+    expect(parseAddTagInput(postId, name)).toEqual({ postId, name });
+  });
+
   it.each([
     ["a post id that isn't a UUID", "abc", "Recipes"],
     ["a missing post id", undefined, "Recipes"],
     ["a name that isn't text", postId, 42],
     ["a missing name", postId, undefined],
     ["an empty name", postId, "   "],
-    ["a name that's too long", postId, "a".repeat(31)],
+    ["a name longer than any tag", postId, "a".repeat(501)],
   ])("refuses %s", (_, id, name) => {
     expect(parseAddTagInput(id, name)).toBeNull();
   });

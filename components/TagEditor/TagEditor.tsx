@@ -118,6 +118,19 @@ export function TagEditor({ postId, tags, userTags }: Props) {
   const canShowAll = !typing && available.length > mostUsed.length;
 
   /**
+   * Checks the name in the field. One of the user's own tags is accepted
+   * at any length, as the server does.
+   *
+   * @param value - The name as typed.
+   * @returns The message to show, or undefined if the name is fine.
+   */
+  function fieldError(value: string) {
+    const key = tagKey(value);
+    const existing = userTags.some((tag) => tagKey(tag.name) === key);
+    return tagNameError(value, { existing });
+  }
+
+  /**
    * Shows the tag on the save at once, clears the field and puts focus in
    * it (a tapped tag's or Undo's button goes away), then saves it. If that
    * fails, the tag disappears again, and it comes back where it came from
@@ -146,7 +159,7 @@ export function TagEditor({ postId, tags, userTags }: Props) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const invalid = tagNameError(name);
+    const invalid = fieldError(name);
     setNameError(invalid);
     if (!invalid) add(name, "field");
   }
@@ -201,7 +214,7 @@ export function TagEditor({ postId, tags, userTags }: Props) {
           value={name}
           onChange={(event) => {
             setName(event.target.value);
-            if (nameError) setNameError(tagNameError(event.target.value));
+            if (nameError) setNameError(fieldError(event.target.value));
           }}
           error={nameError}
           className={styles.field}

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_TEXT_LENGTH } from "./import/import-settings";
 import { MAX_TAG_LENGTH } from "./tag-settings";
 import { TAG_NAME_EMPTY, TAG_NAME_TOO_LONG } from "./tags-text";
 
@@ -13,16 +14,19 @@ export const tagKey = (name: string) => name.trim().toLowerCase();
 
 /**
  * Checks a tag name as typed. Shared by the tag form and the server, so
- * both accept the same names.
+ * both accept the same names. The length limit is only for new tags: tags
+ * made from Instagram collections keep the collection's full name, and
+ * must stay usable on other saves.
  *
  * @param name - The name as typed; surrounding spaces don't count.
+ * @param options - `existing`: the user already has a tag with this name.
  * @returns The message to show, or undefined if the name is fine.
  */
-export function tagNameError(name: string) {
+export function tagNameError(name: string, { existing = false } = {}) {
   // Spread into characters, so an emoji counts as one, not two.
   const length = [...name.trim()].length;
   if (length === 0) return TAG_NAME_EMPTY;
-  if (length > MAX_TAG_LENGTH) return TAG_NAME_TOO_LONG;
+  if (!existing && length > MAX_TAG_LENGTH) return TAG_NAME_TOO_LONG;
   return undefined;
 }
 
@@ -79,10 +83,12 @@ export function mostUsedTags(tags: UserTag[], onSave: string[]) {
   );
 }
 
-const tagNameSchema = z
-  .string()
-  .trim()
-  .refine((name) => !tagNameError(name));
+/**
+ * A name that could be one of the user's tags. The 30-character limit for
+ * new tags is checked once it's known whether the tag exists; the upper
+ * bound is the longest collection name an import accepts.
+ */
+const tagNameSchema = z.string().trim().min(1).max(MAX_TEXT_LENGTH);
 
 /**
  * Checks what the browser sent to add a tag. Server Functions can be called
@@ -91,6 +97,8 @@ const tagNameSchema = z
  * @param postId - The save to tag.
  * @param name - The tag's name as typed.
  * @returns The save's id and the trimmed name, or null if either is wrong.
+ *   A name longer than a new tag allows is returned: it may be an existing
+ *   tag's.
  */
 export function parseAddTagInput(postId: unknown, name: unknown) {
   const result = z
