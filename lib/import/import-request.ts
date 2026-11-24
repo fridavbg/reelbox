@@ -8,6 +8,7 @@ import {
   parsePostLink,
   profileUrl,
 } from "@/lib/export/instagram-url";
+import { MAX_IMPORTED_TAG_LENGTH } from "@/lib/tag-settings";
 import type { ImportInput } from "./build-import";
 import {
   MAX_CAPTION_LENGTH,
@@ -60,7 +61,8 @@ function importRequestSchema(now: Date) {
 
   const collectionSchema = z.object({
     externalId: z.string().min(1).max(100),
-    name: z.string().max(MAX_TEXT_LENGTH),
+    // Becomes a tag's name.
+    name: z.string().max(MAX_IMPORTED_TAG_LENGTH),
     shortcodes: z.array(shortcodeSchema).max(MAX_IMPORT_POSTS),
   });
 

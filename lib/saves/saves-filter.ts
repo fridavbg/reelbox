@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
-import { MAX_TEXT_LENGTH } from "@/lib/import/import-settings";
+import { MAX_IMPORTED_TAG_LENGTH } from "@/lib/tag-settings";
 import { tagKey, type UserTag } from "@/lib/tags";
 
 /**
@@ -15,11 +15,10 @@ const ALL: SavesFilter = { kind: "all" };
 
 /**
  * Longest tag key a URL may hold. Tags made from Instagram collections can
- * be as long as the import allows a collection name, longer than a typed
- * tag, and lowercasing can make a key up to twice as long ("İ" becomes two
- * characters).
+ * be longer than a typed tag, and lowercasing can make a key up to twice as
+ * long ("İ" becomes two characters).
  */
-const MAX_TAG_KEY_LENGTH = 2 * MAX_TEXT_LENGTH;
+const MAX_TAG_KEY_LENGTH = 2 * MAX_IMPORTED_TAG_LENGTH;
 
 /** A tag key as `tagKey` writes it: trimmed, lowercased and not empty. */
 const tagKeySchema = z
