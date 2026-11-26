@@ -20,6 +20,8 @@ const suggestions = {
   fromCollections: ["Try this weekend"],
 };
 
+const collection = "Weeknight dinners under thirty minutes";
+
 const show = () =>
   render(
     <TagEditor
@@ -27,6 +29,7 @@ const show = () =>
       tags={[]}
       userTags={[]}
       suggestions={suggestions}
+      collections={[collection]}
     />,
   );
 
@@ -102,5 +105,17 @@ describe("TagEditor's suggestions", () => {
     expect(screen.queryByRole("button", { name: /Hide suggestion/ })).toBe(
       null,
     );
+  });
+
+  it("adds a long collection name typed in the field, as tapping it would", async () => {
+    addTag.mockResolvedValue({ ok: true });
+    show();
+    fireEvent.change(screen.getByLabelText("Add a tag"), {
+      target: { value: collection },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Add" }));
+    });
+    expect(addTag).toHaveBeenCalledWith(postId, collection);
   });
 });

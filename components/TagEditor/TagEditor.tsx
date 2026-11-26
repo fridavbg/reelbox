@@ -76,6 +76,8 @@ type Props = {
   userTags: UserTag[];
   /** Tags suggested for the save, and the creator they're partly from. */
   suggestions: TagSuggestions & { creatorUsername: string };
+  /** Names of the collections the save is in, which may be long tags. */
+  collections: string[];
 };
 
 /**
@@ -90,10 +92,17 @@ type Props = {
  * how they were and a message says so. A removal can be undone from a
  * message at the bottom of the screen until the next change.
  *
- * @param props - The save, its tags, all the user's tags, and suggestions.
+ * @param props - The save, its tags and collections, all the user's tags,
+ *   and suggestions.
  * @returns The tags and the form.
  */
-export function TagEditor({ postId, tags, userTags, suggestions }: Props) {
+export function TagEditor({
+  postId,
+  tags,
+  userTags,
+  suggestions,
+  collections,
+}: Props) {
   const [shownTags, showChange] = useOptimistic(tags, applyTagChange);
   // Keys of suggestions hidden while the server remembers it; the server
   // then sends suggestions without them.
@@ -235,7 +244,7 @@ export function TagEditor({ postId, tags, userTags, suggestions }: Props) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const invalid = tagFieldError(name, userTags);
+    const invalid = tagFieldError(name, userTags, collections);
     setNameError(invalid);
     if (!invalid) add(name, "field");
   }
@@ -291,7 +300,9 @@ export function TagEditor({ postId, tags, userTags, suggestions }: Props) {
           onChange={(event) => {
             setName(event.target.value);
             if (nameError)
-              setNameError(tagFieldError(event.target.value, userTags));
+              setNameError(
+                tagFieldError(event.target.value, userTags, collections),
+              );
           }}
           error={nameError}
           className={styles.field}

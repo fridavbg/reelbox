@@ -31,16 +31,24 @@ export function tagNameError(name: string, { existing = false } = {}) {
 }
 
 /**
- * Checks the name typed in the tag field. One of the user's own tags is
- * accepted at any length, as the server does.
+ * Checks the name typed in the tag field. One of the user's own tags, or a
+ * new one named after one of the save's collections, is accepted at the
+ * longer limit, as the server does.
  *
  * @param name - The name as typed.
  * @param userTags - All the user's tags.
+ * @param collections - Names of the collections the save is in.
  * @returns The message to show, or undefined if the name is fine.
  */
-export function tagFieldError(name: string, userTags: UserTag[]) {
+export function tagFieldError(
+  name: string,
+  userTags: UserTag[],
+  collections: string[] = [],
+) {
   const key = tagKey(name);
-  const existing = userTags.some((tag) => tagKey(tag.name) === key);
+  const existing = [...userTags.map((tag) => tag.name), ...collections].some(
+    (other) => tagKey(other) === key,
+  );
   return tagNameError(name, { existing });
 }
 

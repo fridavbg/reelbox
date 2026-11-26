@@ -72,6 +72,16 @@ describe("tagFieldError", () => {
   it("refuses an empty name", () => {
     expect(tagFieldError("  ", userTags)).toBe(TAG_NAME_EMPTY);
   });
+
+  it("accepts the long name of one of the save's collections, as the server does", () => {
+    const collection = "Weeknight dinners under thirty minutes";
+    expect(
+      tagFieldError(collection.toLowerCase(), [], [` ${collection}`]),
+    ).toBeUndefined();
+    expect(tagFieldError(`${collection}!`, [], [collection])).toBe(
+      TAG_NAME_TOO_LONG,
+    );
+  });
 });
 
 describe("parseAddTagInput", () => {
