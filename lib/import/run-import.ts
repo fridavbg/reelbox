@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { parsePostLink } from "@/lib/export/instagram-url";
 import { parseExport, type InvalidEntry } from "@/lib/export/parse-export";
 import { readExportFiles, type Upload } from "@/lib/export/read-export-files";
 import { splitUnreadable, type ImportSummary } from "./build-import";
+import { buildUpload } from "./build-upload";
 import {
   IMPORT_FAILED,
   UPLOAD_INTERRUPTED,
@@ -91,20 +91,9 @@ async function importFiles(
   const parsed = parseExport(read.files);
   if (!parsed.ok) return parsed;
 
-  const { posts, collections, invalid, earliestSavedAt, latestSavedAt } =
-    parsed.export;
+  const { invalid, earliestSavedAt, latestSavedAt } = parsed.export;
   const unreadable = splitUnreadable(invalid);
-  const upload = await gzip(
-    JSON.stringify({
-      posts,
-      collections,
-      invalidCount: unreadable.saves.length,
-      // Still saved, only unreadable, so the server never flags them.
-      unreadableShortcodes: unreadable.saves.flatMap((entry) =>
-        entry.url ? (parsePostLink(entry.url)?.shortcode ?? []) : [],
-      ),
-    }),
-  );
+  const upload = await gzip(JSON.stringify(buildUpload(parsed.export)));
   const sizeError = uploadSizeError(upload.size, maxRequestBytes);
   if (sizeError) return { ok: false, error: sizeError };
 
