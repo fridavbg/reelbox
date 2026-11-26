@@ -45,7 +45,7 @@ export function tagFieldError(name: string, userTags: UserTag[]) {
 }
 
 /** Most tags offered below the tag field at once, matching or most used. */
-const MAX_OFFERED_TAGS = 6;
+export const MAX_OFFERED_TAGS = 6;
 
 /** One of the user's tags, with how many of their saves it's on. */
 export type UserTag = { name: string; count: number };
