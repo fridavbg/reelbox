@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { offline } from "@/test/offline";
-import { DEMO_FAILED } from "@/lib/sign-in-messages";
+import { DEMO_FAILED, DEMO_UNEXPECTED } from "@/lib/sign-in-messages";
 
 const anonymous = vi.fn();
 const push = vi.fn();
@@ -14,6 +14,10 @@ vi.mock("@/lib/auth-client", () => ({
 
 const { DemoButton } = await import("./DemoButton");
 
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
 describe("DemoButton when the connection drops", () => {
   it("says so, stays on the page, and the button works again", async () => {
     anonymous.mockImplementation(offline);
@@ -24,5 +28,16 @@ describe("DemoButton when the connection drops", () => {
     const button = screen.getByRole("button", { name: "Try the demo" });
     expect(button.getAttribute("aria-busy")).toBeNull();
     expect(push).not.toHaveBeenCalled();
+  });
+});
+
+describe("DemoButton when something unexpected breaks", () => {
+  it("doesn't blame the connection", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    anonymous.mockRejectedValue(new Error("A bug"));
+    render(<DemoButton />);
+    fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
+
+    expect(await screen.findByText(DEMO_UNEXPECTED)).toBeTruthy();
   });
 });

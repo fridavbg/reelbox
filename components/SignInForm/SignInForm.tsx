@@ -9,10 +9,11 @@ import { TextInput } from "@/components/TextInput/TextInput";
 import { authCall } from "@/lib/auth-call";
 import { authClient } from "@/lib/auth-client";
 import {
-  RATE_LIMITED,
   SEND_FAILED,
+  SEND_UNEXPECTED,
   codeError,
   emailError,
+  failureMessage,
   signInErrorMessage,
 } from "@/lib/sign-in-messages";
 import { ALLOWED_ATTEMPTS, CODE_VALID_MINUTES } from "@/lib/sign-in-settings";
@@ -39,7 +40,12 @@ export function SignInForm() {
       }),
     );
     if (sendError) {
-      setError(sendError.status === 429 ? RATE_LIMITED : SEND_FAILED);
+      setError(
+        failureMessage(sendError, {
+          connection: SEND_FAILED,
+          unexpected: SEND_UNEXPECTED,
+        }),
+      );
       return false;
     }
     setAttemptsLeft(ALLOWED_ATTEMPTS);
