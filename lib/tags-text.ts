@@ -9,6 +9,10 @@ export const TAG_NAME_TOO_LONG = `Tag names can be at most ${MAX_TAG_LENGTH} cha
 /** Shown when adding or removing a tag failed on the server. */
 export const TAG_SAVE_FAILED = "Couldn't save your tag. Try again.";
 
+/** Ignoring a suggestion failed, so it's still offered. */
+export const SUGGESTION_IGNORE_FAILED =
+  "Couldn't hide that suggestion. Try again.";
+
 /**
  * Read out by screen readers as matches appear below the tag field.
  *

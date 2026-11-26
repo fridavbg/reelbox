@@ -9,12 +9,13 @@ import {
   tagKey,
   tagNameError,
 } from "@/lib/tags";
-import { TAG_SAVE_FAILED } from "@/lib/tags-text";
+import { SUGGESTION_IGNORE_FAILED, TAG_SAVE_FAILED } from "@/lib/tags-text";
 
 /** What the tag form gets back: done, or the message to show. */
 export type TagResult = { ok: true } | { ok: false; error: string };
 
 const failed: TagResult = { ok: false, error: TAG_SAVE_FAILED };
+const ignoreFailed: TagResult = { ok: false, error: SUGGESTION_IGNORE_FAILED };
 
 /**
  * Adds a tag to one of the signed-in user's saves. A tag with the same name
@@ -107,6 +108,45 @@ export async function removeTag(
   } catch (error) {
     console.error("Failed to remove a tag", error);
     return failed;
+  }
+  showTagChange();
+  return { ok: true };
+}
+
+/**
+ * Stops suggesting a tag on one of the signed-in user's saves. It's stored
+ * by the name's key, since a suggestion named after a collection may not be
+ * a tag yet; the tag is still suggested on the creator's other saves.
+ *
+ * Like the other actions, it checks the session and both arguments itself.
+ *
+ * @param postId - The save the suggestion was on.
+ * @param name - The suggested tag's name.
+ * @returns Done, or the message to show.
+ */
+export async function ignoreSuggestion(
+  postId: unknown,
+  name: unknown,
+): Promise<TagResult> {
+  const user = await requireUser();
+  // Any name a tag could have, existing ones included.
+  const input = parseAddTagInput(postId, name);
+  if (!input) return ignoreFailed;
+
+  try {
+    const post = await db().post.findFirst({
+      where: { id: input.postId, userId: user.id },
+      select: { id: true },
+    });
+    if (!post) return ignoreFailed;
+    await db().ignoredSuggestion.createMany({
+      data: [{ postId: post.id, userId: user.id, nameKey: tagKey(input.name) }],
+      // Ignoring it twice, e.g. from two tabs, is fine.
+      skipDuplicates: true,
+    });
+  } catch (error) {
+    console.error("Failed to ignore a suggestion", error);
+    return ignoreFailed;
   }
   showTagChange();
   return { ok: true };
