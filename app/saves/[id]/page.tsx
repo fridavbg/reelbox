@@ -10,6 +10,7 @@ import { ProfileLink } from "@/components/ProfileLink/ProfileLink";
 import { SavedOn } from "@/components/SavedOn/SavedOn";
 import { TagEditor } from "@/components/TagEditor/TagEditor";
 import { getSave, listTags } from "@/lib/saves/get-save";
+import { getSuggestions } from "@/lib/saves/get-suggestions";
 import { kindText } from "@/lib/saves/save-card-text";
 import { collectionsText } from "@/lib/saves/saves-text";
 import { requireUser } from "@/lib/session";
@@ -34,6 +35,8 @@ export default async function SavePage({ params }: PageProps<"/saves/[id]">) {
     listTags(user.id),
   ]);
   if (!save) notFound();
+  // Needs the save's creator, tags and collections, so it comes after.
+  const suggestions = await getSuggestions(user.id, save);
 
   const isDemo = Boolean(user.isAnonymous);
   const KindIcon = kindIcons[save.kind];
@@ -78,7 +81,15 @@ export default async function SavePage({ params }: PageProps<"/saves/[id]">) {
           <h2 id="tags-title" className={styles.sectionTitle}>
             Tags
           </h2>
-          <TagEditor postId={save.id} tags={save.tags} userTags={userTags} />
+          <TagEditor
+            postId={save.id}
+            tags={save.tags}
+            userTags={userTags}
+            suggestions={{
+              creatorUsername: save.creatorUsername,
+              ...suggestions,
+            }}
+          />
         </section>
       </div>
     </Layout>

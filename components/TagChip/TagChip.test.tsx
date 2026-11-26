@@ -12,6 +12,15 @@ describe("TagChip", () => {
     expect(html).toContain("Recipes");
   });
 
+  it("has a button that adds it and one that hides it when it can be hidden", () => {
+    const html = renderToStaticMarkup(
+      <TagChip label="Recipes" onAdd={() => {}} onIgnore={() => {}} />,
+    );
+    expect(html).toContain('aria-label="Add tag Recipes"');
+    expect(html).toContain('aria-label="Hide suggestion Recipes"');
+    expect(html.match(/type="button"/g)).toHaveLength(2);
+  });
+
   it("shows a read-only tag without a button", () => {
     const html = renderToStaticMarkup(<TagChip label="Recipes" />);
     expect(html).toContain("Recipes");

@@ -75,3 +75,32 @@ $chip-height: 36px;
     background: $color-accent-soft;
   }
 }
+
+// A suggestion with a × to hide it: shaped like a removable tag, outlined
+// like a suggestion.
+.ignorable {
+  display: inline-flex;
+  align-items: center;
+  height: $chip-height;
+  border: 1px dashed $color-accent-strong;
+  border-radius: $radius-pill;
+  @include text-style(small);
+  color: $color-accent-strong;
+
+  &:has(.addSuggested:hover) {
+    border-style: solid;
+    background: $color-accent-soft;
+  }
+}
+
+.addSuggested {
+  height: $touch-target;
+  margin: (-($touch-target - $chip-height) * 0.5) 0;
+  padding: 0 0 0 $space-4;
+  border: none;
+  border-radius: $radius-pill;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
