@@ -14,6 +14,7 @@ $chip-height: 36px;
 
 .removable {
   display: inline-flex;
+  max-width: 100%;
   align-items: center;
   height: $chip-height;
   padding-left: $space-4;
@@ -51,6 +52,7 @@ $chip-height: 36px;
 // The button is 44px tall for tapping; the dashed chip inside it is 36px.
 .suggestion {
   display: inline-flex;
+  max-width: 100%;
   align-items: center;
   min-height: $touch-target;
   padding: 0;
@@ -62,6 +64,8 @@ $chip-height: 36px;
 
 .suggested {
   display: inline-flex;
+  gap: $space-1;
+  min-width: 0;
   align-items: center;
   height: $chip-height;
   padding: 0 $space-4;
@@ -80,6 +84,7 @@ $chip-height: 36px;
 // like a suggestion.
 .ignorable {
   display: inline-flex;
+  max-width: 100%;
   align-items: center;
   height: $chip-height;
   border: 1px dashed $color-accent-strong;
@@ -94,6 +99,9 @@ $chip-height: 36px;
 }
 
 .addSuggested {
+  display: inline-flex;
+  gap: $space-1;
+  align-items: center;
   // A short name like "+ a" still gets a whole touch target.
   min-width: $touch-target;
   height: $touch-target;
@@ -105,4 +113,11 @@ $chip-height: 36px;
   font: inherit;
   color: inherit;
   cursor: pointer;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

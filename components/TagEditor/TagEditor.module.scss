@@ -16,6 +16,11 @@
   margin: 0;
   padding: 0;
   list-style: none;
+
+  // Lets a chip with a long name shrink to the row instead of overflowing.
+  > li {
+    max-width: 100%;
+  }
 }
 
 .muted {
