@@ -335,12 +335,23 @@ const SAMPLE_INVALID_COUNT = 2;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * When a sample save was saved. The seed and the sample export both use it,
+ * so their dates match exactly.
+ *
+ * @param anchor - When the demo started.
+ * @param daysAgo - How many days before that it was saved.
+ * @returns The saved date.
+ */
+export const sampleSavedAt = (anchor: Date, daysAgo: number) =>
+  new Date(anchor.getTime() - daysAgo * DAY_MS);
+
 export type DemoRows = ReturnType<typeof buildDemoData>;
 
 // Everything one demo user gets, with ids, ready to insert.
 export function buildDemoData(userId: string, now: Date) {
   const id = () => crypto.randomUUID();
-  const at = (daysAgo: number) => new Date(now.getTime() - daysAgo * DAY_MS);
+  const at = (daysAgo: number) => sampleSavedAt(now, daysAgo);
 
   const tags = SAMPLE_TAGS.map((name) => ({
     id: id(),
