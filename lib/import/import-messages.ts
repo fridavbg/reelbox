@@ -7,6 +7,9 @@ import { MAX_REQUEST_BYTES } from "./import-settings";
 export const IMPORT_UNCHANGED =
   "Nothing was imported, so your library is unchanged.";
 export const DEMO_CANT_IMPORT = "Sign in with email to import your own saves.";
+/** Shown when the route refuses the sample: a bug, never the visitor's fault. */
+export const SAMPLE_IMPORT_REFUSED =
+  "We couldn't import the sample export. Try again.";
 export const SAMPLE_EXPORT_NOTE =
   "The sample export has invented saves, so you can see how an import works.";
 export const UPLOAD_UNREADABLE = "We couldn't read this upload.";
