@@ -8,6 +8,10 @@ import {
   UPLOAD_INTERRUPTED,
   UPLOAD_TOO_LARGE,
 } from "./import-messages";
+import {
+  expectedSampleUpload,
+  sampleExportFiles,
+} from "@/lib/demo/sample-export";
 import { parseImportRequest } from "./import-request";
 import { runImport } from "./run-import";
 
@@ -181,5 +185,26 @@ describe("runImport", () => {
       ok: false,
       error: IMPORT_FAILED,
     });
+  });
+});
+
+describe("runImport with its own idea of now", () => {
+  it("judges saved dates by the time it's given, not the device's clock", async () => {
+    // Saves from a demo that starts in 2030 look years in the future to a
+    // real clock, like a sample read on a device whose clock is far behind.
+    const anchor = new Date("2030-01-01T00:00:00.000Z");
+    const files = sampleExportFiles(anchor);
+    const { send, sent } = fakeSend();
+    await runImport(
+      [
+        new File([files.posts], "saved_posts.json"),
+        new File([files.collections], "saved_collections.json"),
+      ],
+      send,
+      { now: anchor },
+    );
+    expect(await unpack(sent[0])).toEqual(
+      JSON.parse(JSON.stringify(expectedSampleUpload(anchor))),
+    );
   });
 });

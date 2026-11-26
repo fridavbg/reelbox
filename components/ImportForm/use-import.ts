@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { runImport, type ImportResult } from "@/lib/import/run-import";
+import {
+  runImport,
+  type ImportOptions,
+  type ImportResult,
+} from "@/lib/import/run-import";
 
 /** Where an import is: not started, running, failed or done. */
 export type ImportState =
@@ -27,8 +31,9 @@ const send = (upload: Blob) =>
  * Runs an import and keeps track of where it is. Focus moves to the new
  * heading after an import, so keyboard and screen reader users follow along.
  *
- * @returns The state, `start` with the files to import, `importMore` to go
- *   back to the start, and the ref for the heading that takes focus.
+ * @returns The state, `start` with the files to import (and `runImport`'s
+ *   options), `importMore` to go back to the start, and the ref for the
+ *   heading that takes focus.
  */
 export function useImport() {
   const [state, setState] = useState<ImportState>({ status: "idle" });
@@ -52,10 +57,10 @@ export function useImport() {
     setState({ status: "idle" });
   }
 
-  async function start(files: File[]) {
+  async function start(files: File[], options?: ImportOptions) {
     if (files.length === 0 || state.status === "loading") return;
     setState({ status: "loading" });
-    const result = await runImport(files, send);
+    const result = await runImport(files, send, options);
     setState(
       result.ok
         ? { status: "done", result }
