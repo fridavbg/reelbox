@@ -27,6 +27,20 @@ export function matchingTagsText(count: number) {
 /** Above the tags offered before anything is typed. */
 export const MOST_USED_TAGS = "Most used";
 
+/**
+ * Above the tags suggested because the user puts them on the creator's
+ * other saves.
+ *
+ * @param username - The creator's username, without the @.
+ * @returns E.g. "You tag @demo.kitchen's saves with".
+ */
+export function creatorSuggestionsText(username: string) {
+  return `You tag @${username}'s saves with`;
+}
+
+/** Above the tags suggested because the save is in collections by that name. */
+export const COLLECTION_SUGGESTIONS = "From your collections";
+
 /** Above all the user's tags, once "Show all" is chosen. */
 export const ALL_TAGS = "All your tags";
 

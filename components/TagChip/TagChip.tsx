@@ -8,6 +8,8 @@ type Props = {
   onRemove?: () => void;
   /** Given for a suggestion: the whole chip is a button that adds it. */
   onAdd?: () => void;
+  /** Given with `onAdd` for a suggestion that can be hidden: shows a ×. */
+  onIgnore?: () => void;
   /** The tag is still saving: the × ignores clicks but keeps focus. */
   busy?: boolean;
 };
@@ -20,7 +22,35 @@ type Props = {
  * @param props - The name, and what tapping it does, if anything.
  * @returns The chip.
  */
-export function TagChip({ label, onRemove, onAdd, busy = false }: Props) {
+export function TagChip({
+  label,
+  onRemove,
+  onAdd,
+  onIgnore,
+  busy = false,
+}: Props) {
+  if (onAdd && onIgnore) {
+    return (
+      <span className={styles.ignorable}>
+        <button
+          type="button"
+          className={styles.addSuggested}
+          aria-label={`Add tag ${label}`}
+          onClick={onAdd}
+        >
+          + {label}
+        </button>
+        <button
+          type="button"
+          className={styles.remove}
+          aria-label={`Hide suggestion ${label}`}
+          onClick={onIgnore}
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+      </span>
+    );
+  }
   if (onAdd) {
     return (
       <button

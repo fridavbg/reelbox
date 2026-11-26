@@ -1,10 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { NO_TAGS } from "@/lib/saves/saves-text";
+import {
+  COLLECTION_SUGGESTIONS,
+  creatorSuggestionsText,
+} from "@/lib/tags-text";
 
 vi.mock("@/app/saves/[id]/actions", () => ({
   addTag: vi.fn(),
   removeTag: vi.fn(),
+  ignoreSuggestion: vi.fn(),
 }));
 
 const { TagEditor } = await import("./TagEditor");
@@ -24,10 +29,25 @@ const userTags = [
   { name: "Workouts", count: 2 },
 ];
 
+const noSuggestions = {
+  creatorUsername: "demo.kitchen",
+  fromCreator: [],
+  fromCollections: [],
+};
+
 const render = (props: Partial<Parameters<typeof TagEditor>[0]> = {}) =>
   renderToStaticMarkup(
-    <TagEditor postId={postId} tags={tags} userTags={userTags} {...props} />,
+    <TagEditor
+      postId={postId}
+      tags={tags}
+      userTags={userTags}
+      suggestions={noSuggestions}
+      {...props}
+    />,
   );
+
+const addable = (html: string) =>
+  [...html.matchAll(/aria-label="Add tag ([^"]+)"/g)].map((match) => match[1]);
 
 describe("TagEditor", () => {
   it("lists the save's tags, each with a remove button", () => {
@@ -69,6 +89,53 @@ describe("TagEditor", () => {
     const html = render();
     expect(html).toMatch(/<label[^>]*>Add a tag<\/label>/);
     expect(html).toMatch(/<button[^>]*type="submit"[^>]*>Add<\/button>/);
+  });
+});
+
+describe("TagEditor's suggestions", () => {
+  const suggestions = {
+    creatorUsername: "demo.kitchen",
+    fromCreator: ["Dinner"],
+    fromCollections: ["Try this weekend"],
+  };
+  // As React writes it in HTML.
+  const creatorTitle = creatorSuggestionsText("demo.kitchen").replace(
+    "'",
+    "&#x27;",
+  );
+
+  it("groups them under where they come from, each with a button to hide it", () => {
+    const html = render({ suggestions });
+    expect(html).toContain(creatorTitle);
+    expect(html).toContain(COLLECTION_SUGGESTIONS);
+    expect(addable(html).slice(0, 2)).toEqual(["Dinner", "Try this weekend"]);
+    expect(html).toContain('aria-label="Hide suggestion Dinner"');
+    expect(html).toContain('aria-label="Hide suggestion Try this weekend"');
+  });
+
+  it("shows only the groups that have suggestions", () => {
+    const html = render({ suggestions: { ...suggestions, fromCreator: [] } });
+    expect(html).not.toContain(creatorTitle);
+    expect(html).toContain(COLLECTION_SUGGESTIONS);
+  });
+
+  it("shows no suggestions when there are none", () => {
+    const html = render();
+    expect(html).not.toContain(creatorTitle);
+    expect(html).not.toContain(COLLECTION_SUGGESTIONS);
+    expect(html).not.toContain("Hide suggestion");
+  });
+
+  it("doesn't offer a suggested tag again under Most used", () => {
+    const html = render({ suggestions });
+    // Dinner is the most used, but it's already suggested above.
+    expect(addable(html)).toEqual([
+      "Dinner",
+      "Try this weekend",
+      "Travel",
+      "Workouts",
+      "Bread",
+    ]);
   });
 });
 
