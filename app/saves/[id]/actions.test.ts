@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  SUGGESTION_IGNORE_FAILED,
   TAG_NAME_EMPTY,
   TAG_NAME_TOO_LONG,
   TAG_SAVE_FAILED,
@@ -14,6 +15,7 @@ const findUnique = vi.fn();
 const upsert = vi.fn();
 const createMany = vi.fn();
 const deleteMany = vi.fn();
+const ignoreCreateMany = vi.fn();
 const revalidatePath = vi.fn();
 
 vi.mock("@/lib/session", () => ({ requireUser: async () => user }));
@@ -23,10 +25,11 @@ vi.mock("@/lib/db", () => ({
     post: { findFirst },
     tag: { findUnique, upsert },
     postTag: { createMany, deleteMany },
+    ignoredSuggestion: { createMany: ignoreCreateMany },
   }),
 }));
 
-const { addTag, removeTag } = await import("./actions");
+const { addTag, ignoreSuggestion, removeTag } = await import("./actions");
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -149,6 +152,54 @@ describe("removeTag", () => {
     expect(await removeTag(postId, tagId)).toEqual({
       ok: false,
       error: TAG_SAVE_FAILED,
+    });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("ignoreSuggestion", () => {
+  it("remembers the ignored name on the user's own save, by its key", async () => {
+    expect(await ignoreSuggestion(postId, "  Weeknight ")).toEqual({
+      ok: true,
+    });
+    expect(findFirst.mock.calls[0][0].where).toEqual({
+      id: postId,
+      userId: user.id,
+    });
+    expect(ignoreCreateMany).toHaveBeenCalledWith({
+      data: [{ postId, userId: user.id, nameKey: "weeknight" }],
+      // Ignoring it twice, e.g. from two tabs, is fine.
+      skipDuplicates: true,
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/saves", "layout");
+  });
+
+  it("refuses a save that isn't the user's", async () => {
+    findFirst.mockResolvedValue(null);
+    expect(await ignoreSuggestion(postId, "Weeknight")).toEqual({
+      ok: false,
+      error: SUGGESTION_IGNORE_FAILED,
+    });
+    expect(ignoreCreateMany).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["an id that isn't a UUID", "abc", "Weeknight"],
+    ["an empty name", postId, "  "],
+    ["a name that isn't text", postId, 42],
+  ])("refuses %s, without asking the database", async (_, id, name) => {
+    expect(await ignoreSuggestion(id, name)).toEqual({
+      ok: false,
+      error: SUGGESTION_IGNORE_FAILED,
+    });
+    expect(findFirst).not.toHaveBeenCalled();
+  });
+
+  it("answers with a message when the database fails", async () => {
+    ignoreCreateMany.mockRejectedValue(new Error("connection lost"));
+    expect(await ignoreSuggestion(postId, "Weeknight")).toEqual({
+      ok: false,
+      error: SUGGESTION_IGNORE_FAILED,
     });
     expect(revalidatePath).not.toHaveBeenCalled();
   });
