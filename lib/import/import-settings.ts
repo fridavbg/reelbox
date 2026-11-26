@@ -10,6 +10,13 @@ export const MAX_REQUEST_BYTES = 4_500_000;
 export const MAX_UPLOAD_BYTES = MAX_JSON_MB * 1024 * 1024;
 
 /**
+ * Largest unpacked upload accepted from a demo user. They can only import
+ * the sample export (about 12 KB), so reading stops long before a real
+ * export's limit: demo accounts are free to create.
+ */
+export const MAX_DEMO_UPLOAD_BYTES = 64 * 1024;
+
+/**
  * Most saves accepted in one import, which bounds how long the import's
  * transaction can take. On the hosting, {@link MAX_REQUEST_BYTES} usually
  * stops a large upload first.

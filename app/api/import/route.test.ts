@@ -8,7 +8,10 @@ import {
   UPLOAD_TOO_LARGE,
   UPLOAD_UNREADABLE,
 } from "@/lib/import/import-messages";
-import { MAX_UPLOAD_BYTES } from "@/lib/import/import-settings";
+import {
+  MAX_DEMO_UPLOAD_BYTES,
+  MAX_UPLOAD_BYTES,
+} from "@/lib/import/import-settings";
 import { demoAnchor } from "@/lib/demo/demo-anchor";
 import { expectedSampleUpload } from "@/lib/demo/sample-export";
 
@@ -130,6 +133,13 @@ describe("POST /api/import", () => {
     const changed = sampleUpload();
     changed.posts[0].caption = "Someone's real caption";
     await expectError(await POST(gzipped(changed)), 403, DEMO_CANT_IMPORT);
+  });
+
+  it("stops reading a demo user's upload once it's bigger than the sample could be", async () => {
+    requireApiUserMock.mockResolvedValue({ user: demoUser });
+    // Read in full, this would fail as unreadable JSON (400) instead.
+    const tooBig = request(gzipSync(Buffer.alloc(MAX_DEMO_UPLOAD_BYTES + 1)));
+    await expectError(await POST(tooBig), 403, DEMO_CANT_IMPORT);
   });
 
   it("refuses a body that isn't compressed", async () => {

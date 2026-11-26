@@ -3,6 +3,7 @@ import { COLLECTIONS_FILE, POSTS_FILE } from "@/lib/export/export-settings";
 import { parseExport } from "@/lib/export/parse-export";
 import { buildImport, type ExistingLibrary } from "@/lib/import/build-import";
 import { parseImportRequest } from "@/lib/import/import-request";
+import { MAX_DEMO_UPLOAD_BYTES } from "@/lib/import/import-settings";
 import { buildDemoData } from "./sample-data";
 import {
   SAMPLE_LEFT_OUT_SHORTCODE,
@@ -152,6 +153,13 @@ describe("expectedSampleUpload", () => {
       tagsAddedCount: 0,
       noLongerSavedCount: 0,
     });
+  });
+});
+
+describe("the demo upload limit", () => {
+  it("leaves room for the sample, which must never hit it", () => {
+    const size = JSON.stringify(expectedSampleUpload(anchor)).length;
+    expect(size * 2).toBeLessThan(MAX_DEMO_UPLOAD_BYTES);
   });
 });
 
