@@ -112,7 +112,12 @@ export function ImportForm() {
             event.preventDefault();
             setDragging(true);
           }}
-          onDragLeave={() => setDragging(false)}
+          onDragLeave={(event) => {
+            // Moving onto the icon or heading inside also fires dragleave.
+            const to = event.relatedTarget;
+            if (to instanceof Node && event.currentTarget.contains(to)) return;
+            setDragging(false);
+          }}
           onDrop={handleDrop}
         >
           <UploadIcon size={32} aria-hidden="true" className={styles.icon} />
