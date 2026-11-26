@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { anonymous, emailOTP } from "better-auth/plugins";
 import { after } from "next/server";
 import { db } from "./db";
+import { demoAnchor } from "./demo/demo-anchor";
 import { deleteExpiredDemoUsers, seedDemoUser } from "./demo/demo-users";
 import { sendSignInCode } from "./email";
 import { serverEnv } from "./env";
@@ -39,13 +40,15 @@ export function demoPlugin() {
 
 // Runs once for every new demo user, before the sign-in response is sent.
 export function onDemoUserCreated(
-  handle: (userId: string) => Promise<void>,
+  handle: (user: { id: string; createdAt: Date }) => Promise<void>,
 ): BetterAuthOptions["databaseHooks"] {
   return {
     user: {
       create: {
         async after(user) {
-          if (user.isAnonymous) await handle(user.id);
+          if (user.isAnonymous) {
+            await handle({ id: user.id, createdAt: user.createdAt });
+          }
         },
       },
     },
@@ -105,8 +108,8 @@ function createAuth() {
     rateLimit: { storage: "database" },
     session: { expiresIn: SESSION_DAYS * 24 * 60 * 60 },
     databaseHooks: {
-      ...onDemoUserCreated(async (userId) => {
-        await seedDemoUser(userId);
+      ...onDemoUserCreated(async (user) => {
+        await seedDemoUser(user.id, demoAnchor(user.createdAt));
         // Old demo users are cleaned up whenever a new one starts.
         after(() =>
           deleteExpiredDemoUsers().catch((error) =>
