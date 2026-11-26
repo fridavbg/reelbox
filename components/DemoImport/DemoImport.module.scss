@@ -16,3 +16,15 @@
     @include text-style(display);
   }
 }
+
+// The button and its status line; the line is empty until an import runs.
+.action {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  align-items: flex-start;
+}
+
+.status {
+  @include text-style(small);
+}
