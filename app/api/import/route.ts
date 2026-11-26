@@ -9,7 +9,10 @@ import {
   UPLOAD_UNREADABLE,
 } from "@/lib/import/import-messages";
 import { parseImportRequest } from "@/lib/import/import-request";
-import { MAX_UPLOAD_BYTES } from "@/lib/import/import-settings";
+import {
+  MAX_DEMO_UPLOAD_BYTES,
+  MAX_UPLOAD_BYTES,
+} from "@/lib/import/import-settings";
 import { readGzipJson } from "@/lib/import/read-gzip-json";
 import { saveImport } from "@/lib/import/save-import";
 import { requireApiUser } from "@/lib/session";
@@ -40,7 +43,16 @@ export async function POST(request: Request) {
   if (contentType?.trim() !== "application/gzip") {
     return failure(415, UPLOAD_UNREADABLE);
   }
-  const body = await readGzipJson(request.body, MAX_UPLOAD_BYTES);
+  const demo = Boolean(user.isAnonymous);
+  // Demo accounts are free to create, so their uploads stop being read as
+  // soon as they're bigger than the sample export could be.
+  const body = await readGzipJson(
+    request.body,
+    demo ? MAX_DEMO_UPLOAD_BYTES : MAX_UPLOAD_BYTES,
+  );
+  if (demo && !body.ok && body.reason === "too-large") {
+    return failure(403, DEMO_CANT_IMPORT);
+  }
   if (!body.ok) {
     return body.reason === "too-large"
       ? failure(413, UPLOAD_TOO_LARGE)
@@ -48,10 +60,7 @@ export async function POST(request: Request) {
   }
   // Demo accounts are deleted after a day, so real data doesn't belong in
   // them: they can import only the sample export, exactly as it ships.
-  if (
-    user.isAnonymous &&
-    !isSampleUpload(body.value, demoAnchor(user.createdAt))
-  ) {
+  if (demo && !isSampleUpload(body.value, demoAnchor(user.createdAt))) {
     return failure(403, DEMO_CANT_IMPORT);
   }
   const input = parseImportRequest(body.value);
