@@ -94,6 +94,8 @@ $chip-height: 36px;
 }
 
 .addSuggested {
+  // A short name like "+ a" still gets a whole touch target.
+  min-width: $touch-target;
   height: $touch-target;
   margin: (-($touch-target - $chip-height) * 0.5) 0;
   padding: 0 0 0 $space-4;
