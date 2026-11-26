@@ -7,6 +7,8 @@ import { MAX_REQUEST_BYTES } from "./import-settings";
 export const IMPORT_UNCHANGED =
   "Nothing was imported, so your library is unchanged.";
 export const DEMO_CANT_IMPORT = "Sign in with email to import your own saves.";
+export const SAMPLE_EXPORT_NOTE =
+  "The sample export has invented saves, so you can see how an import works.";
 export const UPLOAD_UNREADABLE = "We couldn't read this upload.";
 export const UPLOAD_TOO_LARGE =
   "This export is too large to import. Request a new export with only Saved selected, or a shorter date range.";
