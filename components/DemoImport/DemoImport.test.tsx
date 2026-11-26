@@ -58,8 +58,11 @@ describe("DemoImport", () => {
     expect(
       await screen.findByRole("heading", { name: "Import complete" }),
     ).toBeTruthy();
-    const [files] = runImport.mock.calls[0];
-    const expected = sampleExportFiles(demoAnchor(new Date(createdAt)));
+    const [files, , options] = runImport.mock.calls[0];
+    const anchor = demoAnchor(new Date(createdAt));
+    const expected = sampleExportFiles(anchor);
+    // Dates are judged by the demo's time, never the device's clock.
+    expect(options).toEqual({ now: anchor });
     expect(files.map((file: File) => file.name)).toEqual([
       POSTS_FILE,
       COLLECTIONS_FILE,

@@ -33,13 +33,19 @@ export function DemoImport({ createdAt }: Props) {
   const { state, start, importMore, headingRef } = useImport();
 
   function importSample() {
-    const files = sampleExportFiles(demoAnchor(new Date(createdAt)));
-    void start([
-      new File([files.posts], POSTS_FILE, { type: "application/json" }),
-      new File([files.collections], COLLECTIONS_FILE, {
-        type: "application/json",
-      }),
-    ]);
+    const anchor = demoAnchor(new Date(createdAt));
+    const files = sampleExportFiles(anchor);
+    void start(
+      [
+        new File([files.posts], POSTS_FILE, { type: "application/json" }),
+        new File([files.collections], COLLECTIONS_FILE, {
+          type: "application/json",
+        }),
+      ],
+      // The route judges the sample by the demo's time too, so a device
+      // whose clock is wrong still sends exactly the sample.
+      { now: anchor },
+    );
   }
 
   if (state.status === "done") {

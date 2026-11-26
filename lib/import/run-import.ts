@@ -24,6 +24,8 @@ export type ImportResult =
     }
   | { ok: false; error: string };
 
+export type ImportOptions = { maxRequestBytes?: number; now?: Date };
+
 const count = z.number().int().min(0);
 
 /** The route's answer after an import; checked, since it crosses the network. */
@@ -57,14 +59,15 @@ function gzip(text: string) {
  * @param files - The export ZIP, or its JSON files.
  * @param send - Sends the compressed upload, e.g. with `fetch`.
  * @param options - `maxRequestBytes`: the largest upload sent; the
- * hosting's limit by default.
+ * hosting's limit by default. `now`: the time saved dates are judged
+ * against; the device's clock by default.
  * @returns The summary, or the message to show. Never throws, so the page
  *   can't get stuck while importing.
  */
 export async function runImport(
   files: Upload[],
   send: (upload: Blob) => Promise<Response>,
-  options: { maxRequestBytes?: number } = {},
+  options: ImportOptions = {},
 ): Promise<ImportResult> {
   try {
     return await importFiles(files, send, options);
@@ -78,17 +81,17 @@ export async function runImport(
  *
  * @param files - The export ZIP, or its JSON files.
  * @param send - Sends the compressed upload.
- * @param options - `maxRequestBytes`: the largest upload sent.
+ * @param options - The largest upload sent, and the time dates are judged against.
  * @returns The summary, or the message to show.
  */
 async function importFiles(
   files: Upload[],
   send: (upload: Blob) => Promise<Response>,
-  { maxRequestBytes = MAX_REQUEST_BYTES }: { maxRequestBytes?: number },
+  { maxRequestBytes = MAX_REQUEST_BYTES, now = new Date() }: ImportOptions,
 ): Promise<ImportResult> {
   const read = await readExportFiles(files);
   if (!read.ok) return read;
-  const parsed = parseExport(read.files);
+  const parsed = parseExport(read.files, now);
   if (!parsed.ok) return parsed;
 
   const { invalid, earliestSavedAt, latestSavedAt } = parsed.export;
