@@ -65,8 +65,9 @@ export function ImportForm() {
       {state.status === "error" && (
         <>
           <ul className={styles.files} aria-label="Chosen files">
-            {state.files.map((file) => (
-              <li key={file.name}>
+            {/* Two files can share a name; the list never reorders. */}
+            {state.files.map((file, index) => (
+              <li key={`${index}-${file.name}`}>
                 <span className={styles.fileName}>{file.name}</span>
                 <span className={styles.fileSize}>{formatSize(file.size)}</span>
               </li>
