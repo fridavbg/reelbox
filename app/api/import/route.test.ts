@@ -9,6 +9,8 @@ import {
   UPLOAD_UNREADABLE,
 } from "@/lib/import/import-messages";
 import { MAX_UPLOAD_BYTES } from "@/lib/import/import-settings";
+import { demoAnchor } from "@/lib/demo/demo-anchor";
+import { expectedSampleUpload } from "@/lib/demo/sample-export";
 
 const requireApiUserMock = vi.fn();
 const saveImportMock = vi.fn();
@@ -19,7 +21,17 @@ vi.mock("@/lib/import/save-import", () => ({ saveImport: saveImportMock }));
 const { POST } = await import("./route");
 
 const user = { id: "user-1", email: "user@example.com", isAnonymous: false };
-const demoUser = { id: "demo-1", email: "demo@example.com", isAnonymous: true };
+const demoUser = {
+  id: "demo-1",
+  email: "demo@example.com",
+  isAnonymous: true,
+  createdAt: new Date("2026-11-01T10:00:05.123Z"),
+};
+/** The sample export's upload for `demoUser`, as JSON like the browser sends. */
+const sampleUpload = () =>
+  JSON.parse(
+    JSON.stringify(expectedSampleUpload(demoAnchor(demoUser.createdAt))),
+  );
 
 const upload = {
   posts: [
@@ -97,9 +109,27 @@ describe("POST /api/import", () => {
     expect(saveImportMock).not.toHaveBeenCalled();
   });
 
-  it("refuses demo users", async () => {
+  it("refuses demo users' own uploads", async () => {
     requireApiUserMock.mockResolvedValue({ user: demoUser });
     await expectError(await POST(gzipped(upload)), 403, DEMO_CANT_IMPORT);
+  });
+
+  it("imports the sample export for a demo user", async () => {
+    requireApiUserMock.mockResolvedValue({ user: demoUser });
+    const response = await POST(gzipped(sampleUpload()));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(summary);
+    expect(saveImportMock).toHaveBeenCalledWith(
+      demoUser.id,
+      expect.objectContaining({ invalidCount: 2 }),
+    );
+  });
+
+  it("refuses a demo user's upload that differs from the sample in any way", async () => {
+    requireApiUserMock.mockResolvedValue({ user: demoUser });
+    const changed = sampleUpload();
+    changed.posts[0].caption = "Someone's real caption";
+    await expectError(await POST(gzipped(changed)), 403, DEMO_CANT_IMPORT);
   });
 
   it("refuses a body that isn't compressed", async () => {

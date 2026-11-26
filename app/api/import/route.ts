@@ -1,4 +1,6 @@
 import { Prisma } from "@/generated/prisma/client";
+import { demoAnchor } from "@/lib/demo/demo-anchor";
+import { isSampleUpload } from "@/lib/demo/sample-upload-check";
 import {
   DEMO_CANT_IMPORT,
   IMPORT_ALREADY_RUNNING,
@@ -24,7 +26,8 @@ const failure = (status: number, message: string) =>
 
 /**
  * Imports the saves the browser parsed from an Instagram export. The body is
- * the gzip-compressed JSON of an upload, sent as `application/gzip`.
+ * the gzip-compressed JSON of an upload, sent as `application/gzip`. Demo
+ * users can import only the sample export.
  *
  * @param request - The upload from the import page.
  * @returns The summary counts, or `{ error }` with a status code.
@@ -32,8 +35,6 @@ const failure = (status: number, message: string) =>
 export async function POST(request: Request) {
   const { user, response } = await requireApiUser();
   if (response) return response;
-  // Demo accounts are deleted after a day; real data doesn't belong in them.
-  if (user.isAnonymous) return failure(403, DEMO_CANT_IMPORT);
 
   const contentType = request.headers.get("content-type")?.split(";")[0];
   if (contentType?.trim() !== "application/gzip") {
@@ -44,6 +45,14 @@ export async function POST(request: Request) {
     return body.reason === "too-large"
       ? failure(413, UPLOAD_TOO_LARGE)
       : failure(400, UPLOAD_UNREADABLE);
+  }
+  // Demo accounts are deleted after a day, so real data doesn't belong in
+  // them: they can import only the sample export, exactly as it ships.
+  if (
+    user.isAnonymous &&
+    !isSampleUpload(body.value, demoAnchor(user.createdAt))
+  ) {
+    return failure(403, DEMO_CANT_IMPORT);
   }
   const input = parseImportRequest(body.value);
   if (!input) return failure(400, UPLOAD_UNREADABLE);
