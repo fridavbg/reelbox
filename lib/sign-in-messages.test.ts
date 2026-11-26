@@ -4,6 +4,7 @@ import {
   SIGN_IN_CONNECTION_FAILED,
   codeError,
   emailError,
+  failureMessage,
   signInErrorMessage,
 } from "./sign-in-messages";
 
@@ -67,5 +68,29 @@ describe("signInErrorMessage for a lost connection", () => {
     expect(SIGN_IN_CONNECTION_FAILED).toBe(
       "We couldn't sign you in. Check your connection and try again.",
     );
+  });
+});
+
+describe("failureMessage", () => {
+  const messages = {
+    connection: "Check your connection.",
+    unexpected: "Oops.",
+  };
+
+  it("blames the connection for a network error or the server's error", () => {
+    expect(failureMessage({ code: "NETWORK_ERROR", status: 0 }, messages)).toBe(
+      messages.connection,
+    );
+    expect(failureMessage({ status: 500 }, messages)).toBe(messages.connection);
+  });
+
+  it("doesn't blame the connection for an unexpected error", () => {
+    expect(
+      failureMessage({ code: "UNEXPECTED_ERROR", status: 0 }, messages),
+    ).toBe(messages.unexpected);
+  });
+
+  it("asks to wait when rate limited", () => {
+    expect(failureMessage({ status: 429 }, messages)).toBe(RATE_LIMITED);
   });
 });

@@ -7,7 +7,11 @@ import { Button } from "@/components/Button/Button";
 import { authCall } from "@/lib/auth-call";
 import { authClient } from "@/lib/auth-client";
 import { DEMO_LIFETIME_HOURS } from "@/lib/demo/demo-settings";
-import { DEMO_FAILED, RATE_LIMITED } from "@/lib/sign-in-messages";
+import {
+  DEMO_FAILED,
+  DEMO_UNEXPECTED,
+  failureMessage,
+} from "@/lib/sign-in-messages";
 import styles from "./DemoButton.module.scss";
 
 // One click into a temporary account with sample saves; no email needed.
@@ -26,7 +30,12 @@ export function DemoButton() {
       router.push("/saves");
       return;
     }
-    setError(demoError.status === 429 ? RATE_LIMITED : DEMO_FAILED);
+    setError(
+      failureMessage(demoError, {
+        connection: DEMO_FAILED,
+        unexpected: DEMO_UNEXPECTED,
+      }),
+    );
     setLoading(false);
   }
 

@@ -2,7 +2,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { offline } from "@/test/offline";
-import { SEND_FAILED, SIGN_IN_CONNECTION_FAILED } from "@/lib/sign-in-messages";
+import {
+  SEND_FAILED,
+  SEND_UNEXPECTED,
+  SIGN_IN_CONNECTION_FAILED,
+} from "@/lib/sign-in-messages";
 
 const sendVerificationOtp = vi.fn();
 const signInEmailOtp = vi.fn();
@@ -79,5 +83,15 @@ describe("SignInForm when the connection drops", () => {
     expect(await screen.findByText(SEND_FAILED)).toBeTruthy();
     const button = screen.getByRole("button", { name: "Send a new code" });
     expect((button as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
+describe("SignInForm when something unexpected breaks", () => {
+  it("doesn't blame the connection when the code can't be sent", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    sendVerificationOtp.mockRejectedValue(new Error("A bug"));
+    render(<SignInForm />);
+    await sendCode();
+    expect(await screen.findByText(SEND_UNEXPECTED)).toBeTruthy();
   });
 });

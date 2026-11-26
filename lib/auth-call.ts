@@ -16,8 +16,9 @@ type ThrownFailure = {
  * offline. That becomes an `{ error }` too, so forms handle both the same
  * way and never get stuck loading.
  *
- * `fetch` throws a `TypeError` when it can't reach the server; anything
- * else thrown is a bug, so it's logged and kept apart from network errors.
+ * `fetch` throws a `TypeError` when it can't reach the server, so that
+ * counts as a network error; anything else thrown is a bug. Both are
+ * logged: the client's own bugs can throw a `TypeError` too.
  *
  * @param call - The client call, e.g. `() => authClient.signOut()`.
  * @returns The call's answer, or the error it threw.
@@ -28,10 +29,8 @@ export async function authCall<T>(
   try {
     return await call();
   } catch (error) {
-    if (error instanceof TypeError) {
-      return { data: null, error: { code: NETWORK_ERROR, status: 0 } };
-    }
     console.error("Auth request failed", error);
-    return { data: null, error: { code: UNEXPECTED_ERROR, status: 0 } };
+    const code = error instanceof TypeError ? NETWORK_ERROR : UNEXPECTED_ERROR;
+    return { data: null, error: { code, status: 0 } };
   }
 }

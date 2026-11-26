@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { NETWORK_ERROR } from "./auth-call";
+import { NETWORK_ERROR, UNEXPECTED_ERROR } from "./auth-call";
 import { CODE_VALID_MINUTES } from "./sign-in-settings";
 
 const emailSchema = z.email();
@@ -27,6 +27,21 @@ export const DEMO_FAILED =
 /** Signing in with a code didn't reach the server. */
 export const SIGN_IN_CONNECTION_FAILED =
   "We couldn't sign you in. Check your connection and try again.";
+export const SIGN_OUT_FAILED =
+  "We couldn't sign you out. Check your connection and try again.";
+export const LEAVE_DEMO_FAILED =
+  "We couldn't leave the demo. Check your connection and try again.";
+
+// For a call that threw something other than a network error: a bug, so
+// telling people to check their connection would send them the wrong way.
+export const SEND_UNEXPECTED =
+  "Something went wrong sending the code. Try again.";
+export const DEMO_UNEXPECTED =
+  "Something went wrong starting the demo. Try again.";
+export const SIGN_OUT_UNEXPECTED =
+  "Something went wrong signing you out. Try again.";
+export const LEAVE_DEMO_UNEXPECTED =
+  "Something went wrong leaving the demo. Try again.";
 
 type SignInFailure = { code?: string; status?: number };
 
@@ -55,3 +70,21 @@ export function signInErrorMessage(
 
 const tooManyAttempts =
   "Too many wrong tries, so that code no longer works. Send a new code to continue.";
+
+/**
+ * Turns a failed auth call into what the user should do next.
+ *
+ * @param failure - The call's error.
+ * @param messages - What to say when the request failed (offline or a
+ *   server error) and when something unexpected broke.
+ * @returns The message to show.
+ */
+export function failureMessage(
+  failure: SignInFailure,
+  messages: { connection: string; unexpected: string },
+): string {
+  if (failure.status === 429) return RATE_LIMITED;
+  return failure.code === UNEXPECTED_ERROR
+    ? messages.unexpected
+    : messages.connection;
+}

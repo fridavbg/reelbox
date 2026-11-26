@@ -7,15 +7,19 @@ describe("authCall", () => {
     expect(await authCall(async () => answer)).toBe(answer);
   });
 
-  it("turns a request that couldn't be sent into a network error", async () => {
-    // What `fetch` throws when it can't reach the server.
+  it("turns a request that couldn't be sent into a network error, and logs it", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    // What `fetch` throws when it can't reach the server. The client's own
+    // bugs can throw a TypeError too, so it's logged to stay findable.
+    const offline = new TypeError("Failed to fetch");
     const result = await authCall(async () => {
-      throw new TypeError("Failed to fetch");
+      throw offline;
     });
     expect(result).toEqual({
       data: null,
       error: { code: NETWORK_ERROR, status: 0 },
     });
+    expect(log).toHaveBeenCalledWith("Auth request failed", offline);
   });
 
   it("turns anything else into an unexpected error, and logs it", async () => {
