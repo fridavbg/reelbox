@@ -38,7 +38,7 @@ export function TagChip({
           aria-label={`Add tag ${label}`}
           onClick={onAdd}
         >
-          + {label}
+          + <Label text={label} />
         </button>
         <button
           type="button"
@@ -59,14 +59,16 @@ export function TagChip({
         aria-label={`Add tag ${label}`}
         onClick={onAdd}
       >
-        <span className={styles.suggested}>+ {label}</span>
+        <span className={styles.suggested}>
+          + <Label text={label} />
+        </span>
       </button>
     );
   }
   if (!onRemove) return <span className={styles.display}>{label}</span>;
   return (
     <span className={styles.removable}>
-      {label}
+      <Label text={label} />
       <button
         type="button"
         className={styles.remove}
@@ -78,6 +80,19 @@ export function TagChip({
       >
         <X size={16} aria-hidden="true" />
       </button>
+    </span>
+  );
+}
+
+/**
+ * A chip's name, cut short with "…" when it's longer than the row: tags
+ * made from collections can be 500 characters. The full name shows on
+ * hover, and the buttons' labels carry it for screen readers.
+ */
+function Label({ text }: { text: string }) {
+  return (
+    <span className={styles.label} title={text}>
+      {text}
     </span>
   );
 }

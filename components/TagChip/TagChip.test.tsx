@@ -43,4 +43,20 @@ describe("TagChip", () => {
     expect(html).toContain('aria-disabled="true"');
     expect(html).not.toMatch(/\sdisabled=/);
   });
+
+  it.each([
+    ["a tag that can be removed", { onRemove: () => {} }],
+    ["a suggestion", { onAdd: () => {} }],
+    [
+      "a suggestion that can be hidden",
+      { onAdd: () => {}, onIgnore: () => {} },
+    ],
+  ])(
+    "keeps the full name of %s on hover, as a long one is cut short",
+    (_, handlers) => {
+      const long = "Weeknight dinners under thirty minutes for two";
+      const html = renderToStaticMarkup(<TagChip label={long} {...handlers} />);
+      expect(html).toMatch(new RegExp(`<span[^>]*title="${long}"[^>]*>`));
+    },
+  );
 });
