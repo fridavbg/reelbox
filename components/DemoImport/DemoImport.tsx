@@ -46,6 +46,7 @@ export function DemoImport({ createdAt }: Props) {
       <ImportSummary
         {...state.result}
         onImportMore={importMore}
+        demo
         ref={headingRef}
       />
     );
