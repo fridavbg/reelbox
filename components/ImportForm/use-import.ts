@@ -38,6 +38,8 @@ const send = (upload: Blob) =>
 export function useImport() {
   const [state, setState] = useState<ImportState>({ status: "idle" });
   const headingRef = useRef<HTMLHeadingElement>(null);
+  // Set at once, unlike state, so two fast clicks or drops start one import.
+  const running = useRef(false);
   // Set by "Import another export", so the first page load doesn't move focus.
   const focusAfterReset = useRef(false);
 
@@ -58,9 +60,12 @@ export function useImport() {
   }
 
   async function start(files: File[], options?: ImportOptions) {
-    if (files.length === 0 || state.status === "loading") return;
+    if (files.length === 0 || running.current) return;
+    running.current = true;
     setState({ status: "loading" });
+    // runImport never throws, so the ref is always cleared.
     const result = await runImport(files, send, options);
+    running.current = false;
     setState(
       result.ok
         ? { status: "done", result }
