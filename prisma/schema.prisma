@@ -23,12 +23,13 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  sessions    Session[]
-  accounts    Account[]
-  posts       Post[]
-  collections Collection[]
-  tags        Tag[]
-  imports     Import[]
+  sessions           Session[]
+  accounts           Account[]
+  posts              Post[]
+  collections        Collection[]
+  tags               Tag[]
+  imports            Import[]
+  ignoredSuggestions IgnoredSuggestion[]
 
   // Finds expired demo users for cleanup.
   @@index([isAnonymous, createdAt])
@@ -128,9 +129,10 @@ model Post {
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags        PostTag[]
-  collections PostCollection[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags               PostTag[]
+  collections        PostCollection[]
+  ignoredSuggestions IgnoredSuggestion[]
 
   @@unique([userId, shortcode])
   @@index([userId, savedAt(sort: Desc)])
@@ -191,6 +193,24 @@ model PostTag {
   @@id([postId, tagId])
   @@index([tagId])
   @@map("post_tags")
+}
+
+// A tag suggestion the user ignored on one save, so it isn't offered there
+// again. Stored by name key, not tag id: a suggestion named after a
+// collection may not be a tag yet.
+model IgnoredSuggestion {
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  // Trimmed and lowercased, like `tags.name_key`.
+  nameKey   String   @map("name_key")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, nameKey])
+  @@index([userId])
+  @@map("ignored_suggestions")
 }
 
 model Import {
