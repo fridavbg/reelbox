@@ -89,6 +89,7 @@ export default async function SavePage({ params }: PageProps<"/saves/[id]">) {
               creatorUsername: save.creatorUsername,
               ...suggestions,
             }}
+            collections={save.collections}
           />
         </section>
       </div>

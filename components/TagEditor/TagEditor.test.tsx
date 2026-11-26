@@ -42,6 +42,7 @@ const render = (props: Partial<Parameters<typeof TagEditor>[0]> = {}) =>
       tags={tags}
       userTags={userTags}
       suggestions={noSuggestions}
+      collections={[]}
       {...props}
     />,
   );
