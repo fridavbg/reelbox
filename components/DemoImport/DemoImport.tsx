@@ -11,6 +11,7 @@ import { COLLECTIONS_FILE, POSTS_FILE } from "@/lib/export/export-settings";
 import {
   DEMO_CANT_IMPORT,
   SAMPLE_EXPORT_NOTE,
+  SAMPLE_IMPORT_REFUSED,
   unchangedNote,
 } from "@/lib/import/import-messages";
 import styles from "./DemoImport.module.scss";
@@ -53,16 +54,19 @@ export function DemoImport({ createdAt }: Props) {
   }
 
   const loading = state.status === "loading";
-  const note =
-    state.status === "error" ? unchangedNote(state.error) : undefined;
+  // The route refuses a demo upload with "sign in to import your own", which
+  // the note below already says; for the sample, it means something broke.
+  const failed = state.status === "error" ? state.error : undefined;
+  const error = failed === DEMO_CANT_IMPORT ? SAMPLE_IMPORT_REFUSED : failed;
+  const note = error ? unchangedNote(error) : undefined;
   return (
     <div className={styles.demo}>
       <h1 ref={headingRef} tabIndex={-1} className={styles.title}>
         Import your saves
       </h1>
-      {state.status === "error" && (
+      {error && (
         <Alert variant="error">
-          <p>{state.error}</p>
+          <p>{error}</p>
           {note && <p>{note}</p>}
         </Alert>
       )}

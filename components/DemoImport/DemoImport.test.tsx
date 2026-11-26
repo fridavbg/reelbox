@@ -8,6 +8,7 @@ import {
   DEMO_CANT_IMPORT,
   IMPORT_FAILED,
   SAMPLE_EXPORT_NOTE,
+  SAMPLE_IMPORT_REFUSED,
 } from "@/lib/import/import-messages";
 
 const runImport = vi.fn();
@@ -80,5 +81,15 @@ describe("DemoImport", () => {
     expect(await screen.findByText(IMPORT_FAILED)).toBeTruthy();
     const button = screen.getByRole("button", { name: TRY });
     expect(button.getAttribute("aria-busy")).toBeNull();
+  });
+
+  it("says the sample couldn't be imported when the route refuses it, without repeating the note", async () => {
+    // The route's answer to a demo upload that isn't the sample.
+    runImport.mockResolvedValue({ ok: false, error: DEMO_CANT_IMPORT });
+    render(<DemoImport createdAt={createdAt} />);
+    fireEvent.click(screen.getByRole("button", { name: TRY }));
+
+    expect(await screen.findByText(SAMPLE_IMPORT_REFUSED)).toBeTruthy();
+    expect(screen.getAllByText(DEMO_CANT_IMPORT)).toHaveLength(1);
   });
 });
