@@ -16,6 +16,7 @@ const upsert = vi.fn();
 const createMany = vi.fn();
 const deleteMany = vi.fn();
 const ignoreCreateMany = vi.fn();
+const collectionFindMany = vi.fn();
 const revalidatePath = vi.fn();
 
 vi.mock("@/lib/session", () => ({ requireUser: async () => user }));
@@ -24,6 +25,7 @@ vi.mock("@/lib/db", () => ({
   db: () => ({
     post: { findFirst },
     tag: { findUnique, upsert },
+    collection: { findMany: collectionFindMany },
     postTag: { createMany, deleteMany },
     ignoredSuggestion: { createMany: ignoreCreateMany },
   }),
@@ -37,6 +39,7 @@ beforeEach(() => {
   findFirst.mockResolvedValue({ id: postId });
   findUnique.mockResolvedValue(null);
   upsert.mockResolvedValue({ id: tagId });
+  collectionFindMany.mockResolvedValue([]);
 });
 
 describe("addTag", () => {
@@ -95,6 +98,30 @@ describe("addTag", () => {
     });
     expect(upsert).not.toHaveBeenCalled();
     expect(createMany).not.toHaveBeenCalled();
+  });
+
+  it("creates a long tag named after one of the save's collections", async () => {
+    const long = "Weekend breakfast ideas for the family";
+    collectionFindMany.mockResolvedValue([{ name: ` ${long.toUpperCase()}` }]);
+    expect(await addTag(postId, long)).toEqual({ ok: true });
+    expect(collectionFindMany.mock.calls[0][0].where).toEqual({
+      userId: user.id,
+      posts: { some: { postId } },
+    });
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: { userId: user.id, name: long, nameKey: long.toLowerCase() },
+      }),
+    );
+  });
+
+  it("refuses a long new tag named after a collection the save isn't in", async () => {
+    collectionFindMany.mockResolvedValue([{ name: "Dinner ideas" }]);
+    expect(await addTag(postId, "a".repeat(31))).toEqual({
+      ok: false,
+      error: TAG_NAME_TOO_LONG,
+    });
+    expect(upsert).not.toHaveBeenCalled();
   });
 
   it.each([

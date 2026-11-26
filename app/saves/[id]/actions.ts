@@ -20,8 +20,9 @@ const ignoreFailed: TagResult = { ok: false, error: SUGGESTION_IGNORE_FAILED };
 /**
  * Adds a tag to one of the signed-in user's saves. A tag with the same name
  * in any capitals is reused and keeps its name, whatever its length;
- * otherwise it's created as typed, within the length limit for new tags. A
- * tag already on the save is left as it is.
+ * otherwise it's created as typed, within the length limit for new tags
+ * (a name of one of the save's collections may be longer). A tag already on
+ * the save is left as it is.
  *
  * Server Functions can be called by anyone with any arguments, like an API
  * route, so the session and both arguments are checked here.
@@ -57,9 +58,13 @@ export async function addTag(
     const where = { userId_nameKey: { userId: user.id, nameKey } };
     let tag = await db().tag.findUnique({ where, select: { id: true } });
     if (!tag) {
-      // Only a new tag has to fit the length limit.
+      // Only a new tag has to fit the length limit, unless it's named after
+      // one of the save's collections: those are suggested with their full
+      // name, as the import makes them.
       const nameError = tagNameError(input.name);
-      if (nameError) return { ok: false, error: nameError };
+      if (nameError && !(await isCollectionOf(user.id, post.id, nameKey))) {
+        return { ok: false, error: nameError };
+      }
       // Creates the tag or finds it, so two quick adds of a new name can't
       // both try to create it.
       tag = await db().tag.upsert({
@@ -79,6 +84,22 @@ export async function addTag(
   }
   showTagChange();
   return { ok: true };
+}
+
+/**
+ * Whether the save is in one of the user's collections with this name.
+ *
+ * @param userId - The signed-in user.
+ * @param postId - One of their saves.
+ * @param nameKey - The tag name's key.
+ * @returns True if a collection the save is in has that name.
+ */
+async function isCollectionOf(userId: string, postId: string, nameKey: string) {
+  const collections = await db().collection.findMany({
+    where: { userId, posts: { some: { postId } } },
+    select: { name: true },
+  });
+  return collections.some((collection) => tagKey(collection.name) === nameKey);
 }
 
 /**
