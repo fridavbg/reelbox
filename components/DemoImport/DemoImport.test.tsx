@@ -67,7 +67,7 @@ describe("DemoImport", () => {
     expect(await files[1].text()).toBe(expected.collections);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Import another export" }),
+      screen.getByRole("button", { name: "Import the sample again" }),
     );
     expect(screen.getByRole("button", { name: TRY })).toBeTruthy();
   });

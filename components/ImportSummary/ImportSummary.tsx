@@ -21,6 +21,8 @@ type Props = {
   unreadableCollections: InvalidEntry[];
   /** Goes back to the upload, for people with more than one export. */
   onImportMore: () => void;
+  /** A demo's sample import: offers the sample again, with no Instagram tip. */
+  demo?: boolean;
   /** Set on the heading. */
   ref?: Ref<HTMLHeadingElement>;
 };
@@ -30,8 +32,8 @@ type Props = {
  * be read. The heading takes focus when it appears, so screen readers
  * announce the result.
  *
- * @param props - The import's result, what "Import another export" does, and
- *   a ref for the heading.
+ * @param props - The import's result, what "Import another export" does,
+ *   whether it was the demo's sample, and a ref for the heading.
  * @returns The summary section.
  */
 export function ImportSummary({
@@ -41,6 +43,7 @@ export function ImportSummary({
   unreadableSaves,
   unreadableCollections,
   onImportMore,
+  demo = false,
   ref,
 }: Props) {
   const noLongerSaved = noLongerSavedText(summary.noLongerSavedCount);
@@ -100,13 +103,17 @@ export function ImportSummary({
           View my saves
         </Link>
         <Button variant="secondary" onClick={onImportMore}>
-          Import another export
+          {/* Running the sample again shows how a re-import works. */}
+          {demo ? "Import the sample again" : "Import another export"}
         </Button>
       </div>
-      <p className={styles.tip}>
-        Your saves are stored here now. You can clear them in Instagram if you
-        like.
-      </p>
+      {/* Demo visitors have no Instagram saves of their own to clear. */}
+      {!demo && (
+        <p className={styles.tip}>
+          Your saves are stored here now. You can clear them in Instagram if you
+          like.
+        </p>
+      )}
     </section>
   );
 }
