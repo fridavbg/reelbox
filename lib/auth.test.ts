@@ -14,7 +14,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // Runs the real sign-in code settings against an in-memory database.
 function setup() {
   const sent: { email: string; code: string }[] = [];
-  const seeded: string[] = [];
+  const seeded: { id: string; createdAt: Date }[] = [];
   // Cleanups the app runs after the response; tests await them instead.
   const scheduled: Promise<unknown>[] = [];
   const memory: MemoryDB = {
@@ -29,8 +29,8 @@ function setup() {
     database: memoryAdapter(memory),
     session: { expiresIn: (SESSION_DAYS * DAY_MS) / 1000 },
     databaseHooks: {
-      ...onDemoUserCreated(async (userId) => {
-        seeded.push(userId);
+      ...onDemoUserCreated(async (user) => {
+        seeded.push(user);
       }),
       ...sessionPrivacyHooks((task) => scheduled.push(task())),
     },
@@ -209,14 +209,20 @@ describe("demo sign-in", () => {
     const result = await auth.api.signInAnonymous();
     expect(result?.user.isAnonymous).toBe(true);
     expect(memory.user).toHaveLength(1);
-    expect(seeded).toEqual([result?.user.id]);
+    expect(seeded.map((user) => user.id)).toEqual([result?.user.id]);
+  });
+
+  it("hands the new demo user's creation time to the seed", async () => {
+    const { auth, memory, seeded } = setup();
+    await auth.api.signInAnonymous();
+    expect(seeded[0].createdAt).toEqual(memory.user[0].createdAt);
   });
 
   it("gives every visitor their own demo user", async () => {
     const { auth, seeded } = setup();
     await auth.api.signInAnonymous();
     await auth.api.signInAnonymous();
-    expect(new Set(seeded).size).toBe(2);
+    expect(new Set(seeded.map((user) => user.id)).size).toBe(2);
   });
 
   it("doesn't seed real users", async () => {
